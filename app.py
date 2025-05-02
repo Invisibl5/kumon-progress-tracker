@@ -67,7 +67,7 @@ if last_week_file and this_week_file:
     merged["Worksheets This Week"] = merged["WS_This"] - merged["WS_Last"]
     merged["Study Days This Week"] = merged["Days_This"] - merged["Days_Last"]
 
-    weekly_report = merged[["Login ID", "Full Name_This", "WS_This", "WS_Last", "Highest WS Completed"]]
+    weekly_report = merged[["Login ID", "Full Name_This", "WS_This", "WS_Last", "Highest WS Completed_This"]]
     weekly_report = weekly_report.rename(columns={"Full Name_This": "Full Name"})
 
     # Find new students
