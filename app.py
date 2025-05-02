@@ -140,28 +140,21 @@ if last_week_file and this_week_file:
     if parent_map_file:
         parent_map = pd.read_csv(parent_map_file)
         parent_map.columns = parent_map.columns.str.strip()
-        # Create temporary merge keys for case-insensitive matching
-        weekly_report["merge_key"] = weekly_report["Full Name"].str.lower()
-        parent_map["merge_key"] = parent_map["Full Name"].str.lower()
-        new_students["merge_key"] = new_students["Full Name"].str.lower()
-        # Merge parent info into weekly_report on merge_key
-        full_report = pd.merge(weekly_report, parent_map, on="merge_key", how="left", suffixes=("", "_parent"))
+        # Merge parent info into weekly_report on Login ID
+        full_report = pd.merge(weekly_report, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
         full_report["Full Name"] = weekly_report["Full Name"]
         if "Login ID" not in full_report.columns:
             full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
         unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
         unmatched_parents["Reason"] = "No matching parent email"
-        # Merge parent info into new_students on merge_key
-        new_students_merged = pd.merge(new_students, parent_map, on="merge_key", how="left", suffixes=("", "_parent"))
+        # Merge parent info into new_students on Login ID
+        new_students_merged = pd.merge(new_students, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
         new_students_merged["Full Name"] = new_students_merged["Full Name"].combine_first(new_students["Full Name"])
         if "Login ID" not in new_students_merged.columns:
             new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
         unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
         unmatched_new["Reason"] = "New student with no parent email"
         unmatched_all = pd.concat([unmatched_parents, unmatched_new], ignore_index=True)
-        # Drop temporary merge_key columns
-        full_report.drop(columns=["merge_key"], inplace=True)
-        new_students_merged.drop(columns=["merge_key"], inplace=True)
         if not unmatched_all.empty:
             st.subheader("⚠️ Students Without Parent Emails")
             st.dataframe(unmatched_all)
