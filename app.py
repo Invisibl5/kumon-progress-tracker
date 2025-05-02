@@ -160,7 +160,7 @@ if last_week_file and this_week_file:
 
                     failed_emails = []
 
-                    for _, row in full_report.iterrows():
+                    for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
                         try:
                             msg = MIMEMultipart()
                             msg['From'] = sender_email
@@ -179,10 +179,10 @@ if last_week_file and this_week_file:
                             server.send_message(msg)
                         except Exception as e:
                             failed_emails.append({
-                                'Login ID': row['Login ID'],
-                                'Full Name': row['Full Name'],
-                                'Parent Name': row['Parent Name'],
-                                'Parent Email': row['Parent Email'],
+                                'Login ID': row.get('Login ID', ''),
+                                'Full Name': row.get('Full Name', ''),
+                                'Parent Name': row.get('Parent Name', ''),
+                                'Parent Email': row.get('Parent Email', ''),
                                 'Error': str(e)
                             })
 
@@ -190,7 +190,8 @@ if last_week_file and this_week_file:
 
                     if failed_emails:
                         failed_df = pd.DataFrame(failed_emails)
-                        st.error(f"❌ {len(failed_emails)} emails failed to send.")
+                        st.subheader("❌ Failed Email Report")
+                        st.dataframe(failed_df)
                         st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
                     else:
                         st.success("✅ Emails sent successfully!")
