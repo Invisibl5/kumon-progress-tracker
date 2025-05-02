@@ -47,8 +47,8 @@ if last_week_file and this_week_file:
     this_df["Login ID"] = this_df["Login ID"].astype(str)
 
     # Select relevant columns only
-    last_trimmed = last_df[["Login ID", "Full Name", "# of WS", "# of Study Days"]].copy()
-    this_trimmed = this_df[["Login ID", "Full Name", "# of WS", "# of Study Days"]].copy()
+    last_trimmed = last_df[["Login ID", "Full Name", "# of WS", "# of Study Days", "Highest WS Completed"]].copy()
+    this_trimmed = this_df[["Login ID", "Full Name", "# of WS", "# of Study Days", "Highest WS Completed"]].copy()
 
     # Rename columns for clarity before merging
     last_trimmed = last_trimmed.rename(columns={
@@ -67,7 +67,7 @@ if last_week_file and this_week_file:
     merged["Worksheets This Week"] = merged["WS_This"] - merged["WS_Last"]
     merged["Study Days This Week"] = merged["Days_This"] - merged["Days_Last"]
 
-    weekly_report = merged[["Login ID", "Full Name_This", "WS_This", "WS_Last"]]
+    weekly_report = merged[["Login ID", "Full Name_This", "WS_This", "WS_Last", "Highest WS Completed"]]
     weekly_report = weekly_report.rename(columns={"Full Name_This": "Full Name"})
 
     # Find new students
