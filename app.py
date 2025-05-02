@@ -81,6 +81,10 @@ if last_week_file and this_week_file:
 
     # Find new students
     new_students = this_trimmed[~this_trimmed["Login ID"].isin(last_trimmed["Login ID"])]
+    new_students = new_students.rename(columns={
+        "# of WS": "Worksheets This Week",
+        "# of Study Days": "Study Days This Week"
+    })
 
     st.subheader("📈 Returning Students – Weekly Progress")
     st.dataframe(weekly_report)
