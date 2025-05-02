@@ -129,8 +129,19 @@ if last_week_file and this_week_file:
 
     if parent_map_file:
         parent_map = pd.read_csv(parent_map_file)
+        parent_map.columns = parent_map.columns.str.strip()
         # Merge parent info into weekly_report
         full_report = pd.merge(weekly_report, parent_map, on="Full Name", how="left")
+        unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+        unmatched_parents["Reason"] = "No matching parent email"
+        new_students_merged = pd.merge(new_students, parent_map, on="Full Name", how="left")
+        unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+        unmatched_new["Reason"] = "New student with no parent email"
+        unmatched_all = pd.concat([unmatched_parents, unmatched_new], ignore_index=True)
+        if not unmatched_all.empty:
+            st.subheader("⚠️ Students Without Parent Emails")
+            st.dataframe(unmatched_all)
+            st.download_button("Download Missing Parent Emails CSV", data=unmatched_all.to_csv(index=False), file_name="missing_parent_emails.csv")
         if full_report["Parent Email"].isnull().any():
             st.warning("⚠️ Some students do not have a matching parent email in the mapping file.")
         else:
