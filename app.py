@@ -245,7 +245,7 @@ if report_mode == "📅 Weekly Comparison":
 """)
 
             # --- Email Preview Section ---
-            st.subheader("🧪 Email Preview")
+            st.subheader("📧 Email Preview")
             st.write(f"**Subject Line Preview:** {subject_line}")
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
