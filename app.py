@@ -509,7 +509,8 @@ elif report_mode == "🗓️ Monthly Summary":
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
             if "Parent Email" in preview_df.columns:
-                preview_df = preview_df.loc[preview_df["Parent Email"].astype(str).apply(is_valid_email)]
+                email_mask = preview_df["Parent Email"].astype(str).apply(is_valid_email)
+                preview_df = preview_df[email_mask]
             else:
                 st.warning("⚠️ 'Parent Email' column not found in preview data. Skipping email preview filtering.")
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
