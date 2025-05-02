@@ -292,7 +292,7 @@ if last_week_file and this_week_file:
                         server.send_message(msg)
                         st.success("✅ Preview email sent to yourself.")
                         server.quit()
-                        return
+                        st.stop()
 
                     for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
                         try:
