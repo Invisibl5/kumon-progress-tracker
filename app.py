@@ -387,6 +387,13 @@ elif report_mode == "🗓️ Monthly Summary":
 
     if monthly_file:
         date_range_str = "this month"
+        # --- Subject detection logic like weekly mode ---
+        subject_type = ""
+        if "math" in monthly_file.name.lower():
+            subject_type = "Math"
+        elif "reading" in monthly_file.name.lower():
+            subject_type = "Reading"
+
         month_df = pd.read_csv(monthly_file)
         month_df["Login ID"] = month_df["Login ID"].astype(str)
 
@@ -406,7 +413,7 @@ elif report_mode == "🗓️ Monthly Summary":
         sender_pass = st.text_input("App Password", type="password", value=st.session_state.saved_settings.get('password', ''))
         subject_line = st.text_input(
             "Email Subject",
-            value=st.session_state.saved_settings['subject'] or "Your Child's Monthly Study Progress"
+            value=st.session_state.saved_settings['subject'] or (f"Your Child's Monthly {subject_type} Progress" if subject_type else "Your Child's Monthly Study Progress")
         )
         message_template = st.text_area(
             "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws}, {date_range})",
