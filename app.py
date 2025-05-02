@@ -219,6 +219,15 @@ if report_mode == "📅 Weekly Comparison":
             else:
                 st.success("✅ All students matched to parent emails.")
 
+            # --- Charts Section ---
+            st.subheader("📊 Student Engagement Charts")
+            chart_df = full_report.copy()
+            chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
+            chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
+            chart_df = chart_df.dropna(subset=["Full Name"])
+            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
+            st.bar_chart(chart_data)
+
         # Send emails button and logic (always visible if full_report exists)
         if 'full_report' in locals():
             # --- Dashboard Summary ---
@@ -432,6 +441,15 @@ elif report_mode == "🗓️ Monthly Summary":
             parent_map["Login ID"] = parent_map["Login ID"].astype(str)
 
             full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+
+            # --- Charts Section ---
+            st.subheader("📊 Student Engagement Charts")
+            chart_df = full_report.copy()
+            chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
+            chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
+            chart_df = chart_df.dropna(subset=["Full Name"])
+            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
+            st.bar_chart(chart_data)
 
             # --- Show students without parent emails ---
             unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
