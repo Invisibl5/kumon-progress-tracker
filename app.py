@@ -116,6 +116,8 @@ if last_week_file and this_week_file:
 
     st.subheader("📧 Email Weekly Reports to Parents")
 
+    test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
+
     # Instructional note for Gmail SMTP
     st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
 
