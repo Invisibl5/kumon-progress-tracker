@@ -148,6 +148,9 @@ if last_week_file and this_week_file:
             sheet_id = sheet_id_match.group(1)
             parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 
+    # Checkbox for test mode (always visible after data is loaded)
+    test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
+
     if parent_map_url and refresh:
         try:
             try:
@@ -193,66 +196,66 @@ if last_week_file and this_week_file:
             else:
                 st.success("✅ All students matched to parent emails.")
 
-            # Checkbox for test mode
-            test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
-
-            # Send emails button and logic
-            if st.button("Send Emails"):
-                if test_mode:
-                    for _, row in full_report.iterrows():
-                        print(f"TO: {row['Parent Email']}")
-                        print(message_template.format(
-                            parent=row['Parent Name'],
-                            student=row['Full Name'],
-                            worksheets=row['Worksheets This Week'],
-                            days=row['Study Days This Week'],
-                            highest_ws=row['Highest WS Completed']
-                        ))
-                    st.success("✅ Test mode: Emails printed to console.")
-                else:
-                    try:
-                        server = smtplib.SMTP("smtp.gmail.com", 587)
-                        server.starttls()
-                        server.login(sender_email, sender_pass)
-
-                        failed_emails = []
-
-                        for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
-                            try:
-                                msg = MIMEMultipart()
-                                msg['From'] = sender_email
-                                msg['To'] = str(row['Parent Email'])
-                                msg['Subject'] = subject_line
-
-                                body = message_template.format(
-                                    parent=str(row['Parent Name']),
-                                    student=str(row['Full Name']),
-                                    worksheets=str(row['Worksheets This Week']),
-                                    days=str(row['Study Days This Week']),
-                                    highest_ws=str(row['Highest WS Completed'])
-                                )
-
-                                msg.attach(MIMEText(body, 'plain'))
-                                server.send_message(msg)
-                            except Exception as e:
-                                failed_emails.append({
-                                    'Login ID': row.get('Login ID', ''),
-                                    'Full Name': row.get('Full Name', ''),
-                                    'Parent Name': row.get('Parent Name', ''),
-                                    'Parent Email': row.get('Parent Email', ''),
-                                    'Error': str(e)
-                                })
-
-                        server.quit()
-
-                        if failed_emails:
-                            failed_df = pd.DataFrame(failed_emails)
-                            st.subheader("❌ Failed Email Report")
-                            st.dataframe(failed_df)
-                            st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
-                        else:
-                            st.success("✅ Emails sent successfully!")
-                    except Exception as e:
-                        st.error(f"❌ Failed to send emails: {e}")
+            # (Sending emails UI and logic moved below, outside refresh block)
         except Exception as e:
             st.error(f"❌ Failed to load parent mapping CSV from URL: {e}")
+
+    # Send emails button and logic (always visible if full_report exists)
+    if 'full_report' in locals():
+        if st.button("Send Emails"):
+            if test_mode:
+                for _, row in full_report.iterrows():
+                    print(f"TO: {row['Parent Email']}")
+                    print(message_template.format(
+                        parent=row['Parent Name'],
+                        student=row['Full Name'],
+                        worksheets=row['Worksheets This Week'],
+                        days=row['Study Days This Week'],
+                        highest_ws=row['Highest WS Completed']
+                    ))
+                st.success("✅ Test mode: Emails printed to console.")
+            else:
+                try:
+                    server = smtplib.SMTP("smtp.gmail.com", 587)
+                    server.starttls()
+                    server.login(sender_email, sender_pass)
+
+                    failed_emails = []
+
+                    for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
+                        try:
+                            msg = MIMEMultipart()
+                            msg['From'] = sender_email
+                            msg['To'] = str(row['Parent Email'])
+                            msg['Subject'] = subject_line
+
+                            body = message_template.format(
+                                parent=str(row['Parent Name']),
+                                student=str(row['Full Name']),
+                                worksheets=str(row['Worksheets This Week']),
+                                days=str(row['Study Days This Week']),
+                                highest_ws=str(row['Highest WS Completed'])
+                            )
+
+                            msg.attach(MIMEText(body, 'plain'))
+                            server.send_message(msg)
+                        except Exception as e:
+                            failed_emails.append({
+                                'Login ID': row.get('Login ID', ''),
+                                'Full Name': row.get('Full Name', ''),
+                                'Parent Name': row.get('Parent Name', ''),
+                                'Parent Email': row.get('Parent Email', ''),
+                                'Error': str(e)
+                            })
+
+                    server.quit()
+
+                    if failed_emails:
+                        failed_df = pd.DataFrame(failed_emails)
+                        st.subheader("❌ Failed Email Report")
+                        st.dataframe(failed_df)
+                        st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
+                    else:
+                        st.success("✅ Emails sent successfully!")
+                except Exception as e:
+                    st.error(f"❌ Failed to send emails: {e}")
