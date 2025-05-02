@@ -284,10 +284,12 @@ if report_mode == "📅 Weekly Comparison":
             # --- Send Emails Section ---
             test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
             if st.button("Send Emails"):
+                progress_bar = st.progress(0)
+                total = len(preview_df.dropna(subset=["Parent Email"]))
                 email_log = []
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 if test_mode:
-                    for _, row in preview_df.iterrows():
+                    for i, (_, row) in enumerate(preview_df.iterrows()):
                         print(f"TO: {row['Parent Email']}")
                         body = message_template.format(
                             parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
@@ -305,6 +307,7 @@ if report_mode == "📅 Weekly Comparison":
                             'Parent Email': row['Parent Email'],
                             'Status': 'Test Mode'
                         })
+                        progress_bar.progress((i + 1) / total if total else 1.0)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
                 else:
@@ -336,7 +339,7 @@ if report_mode == "📅 Weekly Comparison":
                             server.quit()
                             st.stop()
 
-                        for _, row in preview_df.dropna(subset=["Parent Email"]).iterrows():
+                        for i, (_, row) in enumerate(preview_df.dropna(subset=["Parent Email"]).iterrows()):
                             try:
                                 msg = MIMEMultipart()
                                 msg['From'] = sender_email
@@ -369,6 +372,7 @@ if report_mode == "📅 Weekly Comparison":
                                     'Parent Email': row.get('Parent Email', ''),
                                     'Error': str(e)
                                 })
+                            progress_bar.progress((i + 1) / total if total else 1.0)
 
                         server.quit()
 
@@ -543,11 +547,13 @@ elif report_mode == "🗓️ Monthly Summary":
             test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
 
             if st.button("Send Emails"):
+                progress_bar = st.progress(0)
+                total = len(preview_df.dropna(subset=["Parent Email"]))
                 email_log = []
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
                 if test_mode:
-                    for _, row in preview_df.iterrows():
+                    for i, (_, row) in enumerate(preview_df.iterrows()):
                         print(f"TO: {row['Parent Email']}")
                         body = message_template.format(
                             parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
@@ -565,6 +571,7 @@ elif report_mode == "🗓️ Monthly Summary":
                             'Parent Email': row['Parent Email'],
                             'Status': 'Test Mode'
                         })
+                        progress_bar.progress((i + 1) / total if total else 1.0)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
                 else:
@@ -595,7 +602,7 @@ elif report_mode == "🗓️ Monthly Summary":
                             server.quit()
                             st.stop()
 
-                        for _, row in preview_df.dropna(subset=["Parent Email"]).iterrows():
+                        for i, (_, row) in enumerate(preview_df.dropna(subset=["Parent Email"]).iterrows()):
                             try:
                                 msg = MIMEMultipart()
                                 msg['From'] = sender_email
@@ -628,6 +635,7 @@ elif report_mode == "🗓️ Monthly Summary":
                                     'Parent Email': row.get('Parent Email', ''),
                                     'Error': str(e)
                                 })
+                            progress_bar.progress((i + 1) / total if total else 1.0)
 
                         server.quit()
 
