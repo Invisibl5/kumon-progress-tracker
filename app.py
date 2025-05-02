@@ -37,6 +37,13 @@ if last_week_file and this_week_file:
     date_last = extract_date_from_filename(last_week_file.name)
     date_this = extract_date_from_filename(this_week_file.name)
 
+    # Infer subject type from filename
+    subject_type = ""
+    if "math" in this_week_file.name.lower():
+        subject_type = "Math"
+    elif "reading" in this_week_file.name.lower():
+        subject_type = "Reading"
+
     if date_last and date_this:
         delta_days = (date_this - date_last).days
         st.markdown(f"**Date Range:** {date_last.strftime('%B %d, %Y')} to {date_this.strftime('%B %d, %Y')}  ")
@@ -107,7 +114,10 @@ if last_week_file and this_week_file:
     # Email login fields
     sender_email = st.text_input("Sender Gmail address")
     sender_pass = st.text_input("App Password", type="password")
-    subject_line = st.text_input("Email Subject", value="Your Child's Weekly Study Progress")
+    subject_line = st.text_input(
+        "Email Subject",
+        value=f"Your Child's Weekly {subject_type} Progress" if subject_type else "Your Child's Weekly Study Progress"
+    )
 
     # Message template
     message_template = st.text_area(
