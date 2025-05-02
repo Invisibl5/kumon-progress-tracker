@@ -228,20 +228,22 @@ if report_mode == "📅 Weekly Comparison":
             chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]]
             import altair as alt
 
-            chart = alt.Chart(chart_data).transform_fold(
+            base = alt.Chart(chart_data).transform_fold(
                 ["Worksheets", "Study Days"],
                 as_=["Metric", "Value"]
-            ).mark_bar().encode(
+            )
+
+            chart = base.mark_bar().encode(
                 x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45, labelLimit=1000)),
-                y="Value:Q",
-                color="Metric:N",
+                y=alt.Y("Value:Q"),
+                color=alt.Color("Metric:N"),
                 tooltip=["Full Name:N", "Metric:N", "Value:Q"]
             ).properties(
-                width=alt.Step(25),
+                width=alt.Step(30),
                 height=400
             )
 
-            st.altair_chart(chart, use_container_width=True)
+            st.altair_chart(chart, use_container_width=False)
 
         # Send emails button and logic (always visible if full_report exists)
         if 'full_report' in locals():
@@ -466,20 +468,22 @@ elif report_mode == "🗓️ Monthly Summary":
             chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]]
             import altair as alt
 
-            chart = alt.Chart(chart_data).transform_fold(
+            base = alt.Chart(chart_data).transform_fold(
                 ["Worksheets", "Study Days"],
                 as_=["Metric", "Value"]
-            ).mark_bar().encode(
+            )
+
+            chart = base.mark_bar().encode(
                 x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45, labelLimit=1000)),
-                y="Value:Q",
-                color="Metric:N",
+                y=alt.Y("Value:Q"),
+                color=alt.Color("Metric:N"),
                 tooltip=["Full Name:N", "Metric:N", "Value:Q"]
             ).properties(
-                width=alt.Step(25),
+                width=alt.Step(30),
                 height=400
             )
 
-            st.altair_chart(chart, use_container_width=True)
+            st.altair_chart(chart, use_container_width=False)
 
             # --- Show students without parent emails ---
             unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
