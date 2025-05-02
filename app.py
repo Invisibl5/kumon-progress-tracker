@@ -24,8 +24,6 @@ today = datetime.now(eastern)
 st.title("📊 Weekly Study Activity Tracker")
 st.caption(f"Report generated at {today.strftime('%I:%M %p on %B %d, %Y')} (Eastern Time)")
 
-# Display today's date
-st.markdown(f"**Report generated on:** {today.strftime('%B %d, %Y')} (Eastern Time)")
 
 st.write("Upload last week's and this week's CSV files to compare study progress.")
 
