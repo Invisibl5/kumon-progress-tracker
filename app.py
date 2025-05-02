@@ -305,6 +305,7 @@ if report_mode == "📅 Weekly Comparison":
                             'Status': 'Test Mode'
                         })
                     st.success("✅ Test mode: Emails printed to console.")
+                    st.snow()
                 else:
                     try:
                         server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -377,6 +378,7 @@ if report_mode == "📅 Weekly Comparison":
                             st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
                         else:
                             st.success("✅ Emails sent successfully!")
+                            st.balloons()
                     except Exception as e:
                         st.error(f"❌ Failed to send emails: {e}")
                 # --- Show Email Log if any emails handled ---
@@ -562,6 +564,7 @@ elif report_mode == "🗓️ Monthly Summary":
                             'Status': 'Test Mode'
                         })
                     st.success("✅ Test mode: Emails printed to console.")
+                    st.snow()
                 else:
                     try:
                         server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -633,6 +636,7 @@ elif report_mode == "🗓️ Monthly Summary":
                             st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
                         else:
                             st.success("✅ Emails sent successfully!")
+                            st.balloons()
                     except Exception as e:
                         st.error(f"❌ Failed to send emails: {e}")
 
