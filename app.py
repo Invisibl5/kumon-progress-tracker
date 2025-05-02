@@ -250,14 +250,15 @@ if report_mode == "📅 Weekly Comparison":
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
-            preview_df["Email Body"] = preview_df.apply(lambda row: message_template.format(
-                parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
-                student=row['Full Name'],
-                worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
-                days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
-                highest_ws=row['Highest WS Completed'],
-                date_range=date_range_str
-            ), axis=1)
+            preview_df["Email Body"] = preview_df.apply(
+                lambda row: message_template.format(
+                    parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                    student=row['Full Name'],
+                    worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
+                    days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
+                    highest_ws=row['Highest WS Completed'],
+                    date_range=date_range_str
+                ), axis=1)
 
             selected_emails = st.multiselect(
                 "Check students to include in the email send list:",
@@ -280,14 +281,15 @@ if report_mode == "📅 Weekly Comparison":
                 if test_mode:
                     for _, row in preview_df.iterrows():
                         print(f"TO: {row['Parent Email']}")
-                        print(message_template.format(
+                        body = message_template.format(
                             parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
                             student=row['Full Name'],
                             worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
                             days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
                             highest_ws=row['Highest WS Completed'],
                             date_range=date_range_str
-                        ))
+                        )
+                        print(body)
                         email_log.append({
                             'Timestamp': timestamp,
                             'Login ID': row['Login ID'],
@@ -495,14 +497,15 @@ elif report_mode == "🗓️ Monthly Summary":
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
-            preview_df["Email Body"] = preview_df.apply(lambda row: message_template.format(
-                parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
-                student=row['Full Name'],
-                worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
-                days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
-                highest_ws=row['Highest WS Completed'],
-                date_range=date_range_str
-            ), axis=1)
+            preview_df["Email Body"] = preview_df.apply(
+                lambda row: message_template.format(
+                    parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                    student=row['Full Name'],
+                    worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
+                    days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
+                    highest_ws=row['Highest WS Completed'],
+                    date_range=date_range_str
+                ), axis=1)
             selected_emails = st.multiselect(
                 "Check students to include in the email send list:",
                 options=preview_df["Full Name"].tolist(),
@@ -522,14 +525,15 @@ elif report_mode == "🗓️ Monthly Summary":
                 if test_mode:
                     for _, row in preview_df.iterrows():
                         print(f"TO: {row['Parent Email']}")
-                        print(message_template.format(
+                        body = message_template.format(
                             parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
                             student=row['Full Name'],
                             worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
                             days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
                             highest_ws=row['Highest WS Completed'],
                             date_range=date_range_str
-                        ))
+                        )
+                        print(body)
                         email_log.append({
                             'Timestamp': timestamp,
                             'Login ID': row['Login ID'],
