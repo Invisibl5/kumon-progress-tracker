@@ -1,14 +1,39 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
+import re
 
 st.title("📊 Weekly Study Activity Tracker")
+
+# Display today's date
+st.markdown(f"**Report generated on:** {datetime.today().strftime('%B %d, %Y')}")
+
 st.write("Upload last week's and this week's CSV files to compare study progress.")
 
 # File uploaders
 last_week_file = st.file_uploader("Upload LAST week's CSV", type="csv", key="last")
 this_week_file = st.file_uploader("Upload THIS week's CSV", type="csv", key="this")
 
+def extract_date_from_filename(filename):
+    match = re.search(r'(\d{8})', filename)
+    if match:
+        return datetime.strptime(match.group(1), "%m%d%Y")
+    return None
+
 if last_week_file and this_week_file:
+    # Display file names
+    st.markdown(f"**Last Week File:** {last_week_file.name}")
+    st.markdown(f"**This Week File:** {this_week_file.name}")
+
+    # Try to extract dates
+    date_last = extract_date_from_filename(last_week_file.name)
+    date_this = extract_date_from_filename(this_week_file.name)
+
+    if date_last and date_this:
+        delta_days = (date_this - date_last).days
+        st.markdown(f"**Date Range:** {date_last.strftime('%B %d, %Y')} to {date_this.strftime('%B %d, %Y')}  ")
+        st.markdown(f"**Days Between Reports:** {delta_days} days")
+
     last_df = pd.read_csv(last_week_file)
     this_df = pd.read_csv(this_week_file)
 
