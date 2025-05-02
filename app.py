@@ -135,6 +135,7 @@ if last_week_file and this_week_file:
 
     # Parent email mapping via Google Sheets CSV export link
     parent_map_url = st.text_input("Paste Google Sheets CSV export link for parent contacts")
+    refresh = st.button("🔄 Refresh Parent Contact Data")
 
     # Convert Google Sheets view link to export link, if needed
     if (
@@ -147,7 +148,7 @@ if last_week_file and this_week_file:
             sheet_id = sheet_id_match.group(1)
             parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 
-    if parent_map_url:
+    if parent_map_url and refresh:
         try:
             try:
                 parent_map = pd.read_csv(parent_map_url)
