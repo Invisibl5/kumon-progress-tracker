@@ -566,7 +566,7 @@ elif report_mode == "🗓️ Monthly Summary":
                             'Status': 'Test Mode'
                         })
                     st.success("✅ Test mode: Emails printed to console.")
-                    st.snow()
+                    st.balloons()
                 else:
                     try:
                         server = smtplib.SMTP("smtp.gmail.com", 587)
