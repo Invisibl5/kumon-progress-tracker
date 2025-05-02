@@ -136,6 +136,17 @@ if last_week_file and this_week_file:
     # Parent email mapping via Google Sheets CSV export link
     parent_map_url = st.text_input("Paste Google Sheets CSV export link for parent contacts")
 
+    # Convert Google Sheets view link to export link, if needed
+    if (
+        parent_map_url
+        and "docs.google.com/spreadsheets" in parent_map_url
+        and "export?format=csv" not in parent_map_url
+    ):
+        sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
+        if sheet_id_match:
+            sheet_id = sheet_id_match.group(1)
+            parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+
     if parent_map_url:
         try:
             try:
