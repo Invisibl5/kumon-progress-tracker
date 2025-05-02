@@ -249,11 +249,12 @@ if report_mode == "📅 Weekly Comparison":
             st.write(f"**Subject Line Preview:** {subject_line}")
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
-            # Only filter valid emails if "Parent Email" exists
-            if "Parent Email" in preview_df.columns:
+            filter_valid_only = st.checkbox("✅ Only show students with valid parent emails", value=True)
+            # Only filter valid emails if "Parent Email" exists and toggle is on
+            if "Parent Email" in preview_df.columns and filter_valid_only:
                 email_mask = preview_df["Parent Email"].astype(str).apply(lambda x: isinstance(x, str) and bool(re.match(r"[^@\s]+@[^@\s]+\.[^@\s]+", x)))
                 preview_df = preview_df[email_mask]
-            else:
+            elif "Parent Email" not in preview_df.columns:
                 st.warning("⚠️ 'Parent Email' column not found. Skipping filtering of valid emails.")
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
             preview_df["Email Body"] = preview_df.apply(
@@ -505,14 +506,15 @@ elif report_mode == "🗓️ Monthly Summary":
 - ⚠️ **{missing_count} students** missing parent emails
 """)
 
-            st.subheader("🧪 Email Preview")
+            st.subheader("📧 Email Preview")
             st.write(f"**Subject Line Preview:** {subject_line}")
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
-            if "Parent Email" in preview_df.columns:
+            filter_valid_only = st.checkbox("✅ Only show students with valid parent emails", value=True)
+            if "Parent Email" in preview_df.columns and filter_valid_only:
                 email_mask = preview_df["Parent Email"].astype(str).apply(lambda x: isinstance(x, str) and bool(re.match(r"[^@\s]+@[^@\s]+\.[^@\s]+", x)))
                 preview_df = preview_df[email_mask]
-            else:
+            elif "Parent Email" not in preview_df.columns:
                 st.warning("⚠️ 'Parent Email' column not found in preview data. Skipping email preview filtering.")
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
             preview_df["Email Body"] = preview_df.apply(
