@@ -80,11 +80,11 @@ if last_week_file and this_week_file:
     ]]
     weekly_report = weekly_report.rename(columns={
         "Full Name_This": "Full Name",
-        "WS_This": "Worksheets This Week (Total)",
-        "WS_Last": "Worksheets Last Week (Total)",
-        "Days_This": "Study Days This Week (Total)",
-        "Days_Last": "Study Days Last Week (Total)",
-        "Highest WS Completed_This": "Highest Worksheet Completed"
+        "WS_This": "This Week Worksheets",
+        "WS_Last": "Last Week Worksheets",
+        "Days_This": "This Week Study Days",
+        "Days_Last": "Last Week Study Days",
+        "Highest WS Completed_This": "Highest WS Completed"
     })
 
     # Find new students
