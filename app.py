@@ -25,12 +25,7 @@ today = datetime.now(eastern)
 st.title("📊 Weekly Study Activity Tracker")
 st.caption(f"Report generated at {today.strftime('%I:%M %p on %B %d, %Y')} (Eastern Time)")
 
-
-st.write("Upload last week's and this week's CSV files to compare study progress.")
-
-# File uploaders
-last_week_file = st.file_uploader("Upload LAST week's CSV", type="csv", key="last")
-this_week_file = st.file_uploader("Upload THIS week's CSV", type="csv", key="this")
+report_mode = st.radio("Choose Report Mode", ["📅 Weekly Comparison", "🗓️ Monthly Summary"])
 
 def extract_date_from_filename(filename):
     match = re.search(r'(\d{8})', filename)
@@ -50,7 +45,14 @@ def load_parent_map(url):
         st.warning("⚠️ Some rows in the parent contact sheet were skipped due to formatting issues.")
     return parent_map
 
-if last_week_file and this_week_file:
+# --- Report Modes ---
+if report_mode == "📅 Weekly Comparison":
+    st.write("Upload last week's and this week's CSV files to compare study progress.")
+    # File uploaders
+    last_week_file = st.file_uploader("Upload LAST week's CSV", type="csv", key="last")
+    this_week_file = st.file_uploader("Upload THIS week's CSV", type="csv", key="this")
+
+    if last_week_file and this_week_file:
     # Display file names
     # st.markdown(f"**Last Week File:** {last_week_file.name}")
     # st.markdown(f"**This Week File:** {this_week_file.name}")
@@ -351,3 +353,21 @@ if last_week_file and this_week_file:
                 st.subheader("📜 Email Log")
                 st.dataframe(email_log_df)
                 st.download_button("Download Email Log", data=email_log_df.to_csv(index=False), file_name="email_log.csv")
+
+elif report_mode == "🗓️ Monthly Summary":
+    st.subheader("🗓️ Monthly Summary Mode")
+    st.write("Upload a single CSV file representing the end-of-month progress.")
+    monthly_file = st.file_uploader("Upload Monthly Report CSV", type="csv", key="monthly")
+
+    if monthly_file:
+        month_df = pd.read_csv(monthly_file)
+        month_df["Login ID"] = month_df["Login ID"].astype(str)
+
+        summary = month_df[["Login ID", "Full Name", "# of WS", "# of Study Days", "Highest WS Completed"]].copy()
+        summary = summary.rename(columns={
+            "# of WS": "Worksheets This Month",
+            "# of Study Days": "Study Days This Month"
+        })
+
+        st.dataframe(summary)
+        st.download_button("Download Monthly Summary CSV", data=summary.to_csv(index=False), file_name="monthly_summary.csv")
