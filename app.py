@@ -201,6 +201,15 @@ if report_mode == "📅 Weekly Comparison":
             full_report["Full Name"] = weekly_report["Full Name"]
             if "Login ID" not in full_report.columns:
                 full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
+
+            # --- Student Selection Filter ---
+            st.subheader("🎯 Select Students to Email")
+            selected_students = st.multiselect(
+                "Uncheck any students you do NOT want to send emails to:",
+                options=full_report["Full Name"].tolist(),
+                default=full_report["Full Name"].tolist()
+            )
+            full_report = full_report[full_report["Full Name"].isin(selected_students)]
             unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
             unmatched_parents["Reason"] = "No matching parent email"
             new_students_merged = pd.merge(new_students, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
@@ -443,6 +452,15 @@ elif report_mode == "🗓️ Monthly Summary":
             parent_map["Login ID"] = parent_map["Login ID"].astype(str)
 
             full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+
+            # --- Student Selection Filter ---
+            st.subheader("🎯 Select Students to Email")
+            selected_students = st.multiselect(
+                "Uncheck any students you do NOT want to send emails to:",
+                options=full_report["Full Name"].tolist(),
+                default=full_report["Full Name"].tolist()
+            )
+            full_report = full_report[full_report["Full Name"].isin(selected_students)]
 
             # --- Charts Section ---
             st.subheader("📊 Student Engagement Charts")
