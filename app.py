@@ -3,6 +3,9 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import re
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Use Eastern Time
 eastern = pytz.timezone("America/New_York")
@@ -95,3 +98,84 @@ if last_week_file and this_week_file:
     # Option to download results
     st.download_button("Download Weekly Report CSV", data=weekly_report.to_csv(index=False), file_name="weekly_report.csv")
     st.download_button("Download New Students CSV", data=new_students.to_csv(index=False), file_name="new_students.csv")
+
+    st.subheader("📧 Email Weekly Reports to Parents")
+
+    # Instructional note for Gmail SMTP
+    st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
+
+    # Email login fields
+    sender_email = st.text_input("Sender Gmail address")
+    sender_pass = st.text_input("App Password", type="password")
+    subject_line = st.text_input("Email Subject", value="Your Child's Weekly Study Progress")
+
+    # Message template
+    message_template = st.text_area(
+        "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws})",
+        value=(
+            "Dear {parent},\n\n"
+            "Here is the weekly study update for {student}:\n"
+            "- Worksheets completed this week: {worksheets}\n"
+            "- Study days this week: {days}\n"
+            "- Highest worksheet completed: {highest_ws}\n\n"
+            "Keep up the great work!\n"
+        ),
+        height=180
+    )
+
+    # Parent email mapping upload
+    st.markdown("Upload a CSV mapping student names to parent names and parent emails. Columns required: Full Name, Parent Name, Parent Email")
+    parent_map_file = st.file_uploader("Parent Email Mapping CSV", type="csv", key="parent_map")
+
+    if parent_map_file:
+        parent_map = pd.read_csv(parent_map_file)
+        # Merge parent info into weekly_report
+        full_report = pd.merge(weekly_report, parent_map, on="Full Name", how="left")
+        if full_report["Parent Email"].isnull().any():
+            st.warning("⚠️ Some students do not have a matching parent email in the mapping file.")
+        else:
+            st.success("✅ All students matched to parent emails.")
+
+        # Checkbox for test mode
+        test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
+
+        # Send emails button and logic
+        if st.button("Send Emails"):
+            if test_mode:
+                for _, row in full_report.iterrows():
+                    print(f"TO: {row['Parent Email']}")
+                    print(message_template.format(
+                        parent=row['Parent Name'],
+                        student=row['Full Name'],
+                        worksheets=row['Worksheets This Week'],
+                        days=row['Study Days This Week'],
+                        highest_ws=row['Highest WS Completed']
+                    ))
+                st.success("✅ Test mode: Emails printed to console.")
+            else:
+                try:
+                    server = smtplib.SMTP("smtp.gmail.com", 587)
+                    server.starttls()
+                    server.login(sender_email, sender_pass)
+
+                    for _, row in full_report.iterrows():
+                        msg = MIMEMultipart()
+                        msg['From'] = sender_email
+                        msg['To'] = row['Parent Email']
+                        msg['Subject'] = subject_line
+
+                        body = message_template.format(
+                            parent=row['Parent Name'],
+                            student=row['Full Name'],
+                            worksheets=row['Worksheets This Week'],
+                            days=row['Study Days This Week'],
+                            highest_ws=row['Highest WS Completed']
+                        )
+
+                        msg.attach(MIMEText(body, 'plain'))
+                        server.send_message(msg)
+
+                    server.quit()
+                    st.success("✅ Emails sent successfully!")
+                except Exception as e:
+                    st.error(f"❌ Failed to send emails: {e}")
