@@ -70,20 +70,12 @@ if last_week_file and this_week_file:
     weekly_report = merged[[
         "Login ID",
         "Full Name_This",
-        "WS_This",
-        "WS_Last",
         "Worksheets This Week",
-        "Days_This",
-        "Days_Last",
         "Study Days This Week",
         "Highest WS Completed_This"
     ]]
     weekly_report = weekly_report.rename(columns={
         "Full Name_This": "Full Name",
-        "WS_This": "This Week Worksheets",
-        "WS_Last": "Last Week Worksheets",
-        "Days_This": "This Week Study Days",
-        "Days_Last": "Last Week Study Days",
         "Highest WS Completed_This": "Highest WS Completed"
     })
 
