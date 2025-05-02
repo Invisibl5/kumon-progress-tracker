@@ -65,7 +65,7 @@ if last_week_file and this_week_file:
 
     # Calculate weekly difference
     merged["Worksheets This Week"] = merged["Worksheets This Week"] - merged["Worksheets Last Week"]
-    merged["Study Days This Week"] = merged["Days_This"] - merged["Days_Last"]
+    merged["Study Days This Week"] = merged["Worksheets This Week"] - merged["Worksheets Last Week"]
 
     weekly_report = merged[["Login ID", "Full Name_This", "Worksheets This Week", "Study Days This Week"]]
     weekly_report = weekly_report.rename(columns={"Full Name_This": "Full Name"})
