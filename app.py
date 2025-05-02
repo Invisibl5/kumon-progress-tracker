@@ -225,10 +225,10 @@ if report_mode == "📅 Weekly Comparison":
             chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
             chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
             chart_df = chart_df.dropna(subset=["Full Name"])
-            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
+            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]]
             import altair as alt
 
-            chart = alt.Chart(chart_data.reset_index()).transform_fold(
+            chart = alt.Chart(chart_data).transform_fold(
                 ["Worksheets", "Study Days"],
                 as_=["Metric", "Value"]
             ).mark_bar().encode(
@@ -463,10 +463,10 @@ elif report_mode == "🗓️ Monthly Summary":
             chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
             chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
             chart_df = chart_df.dropna(subset=["Full Name"])
-            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
+            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]]
             import altair as alt
 
-            chart = alt.Chart(chart_data.reset_index()).transform_fold(
+            chart = alt.Chart(chart_data).transform_fold(
                 ["Worksheets", "Study Days"],
                 as_=["Metric", "Value"]
             ).mark_bar().encode(
