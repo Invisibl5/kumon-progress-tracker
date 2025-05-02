@@ -134,9 +134,6 @@ if report_mode == "📅 Weekly Comparison":
 
         st.subheader("📧 Email Weekly Reports to Parents")
 
-        # Instructional note for Gmail SMTP
-        st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
-
         # --- Email Settings Section (with session state) ---
         st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
         sender_email = st.text_input("Sender Gmail address", value=st.session_state.saved_settings['email'])
