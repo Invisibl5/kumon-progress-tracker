@@ -433,6 +433,19 @@ elif report_mode == "🗓️ Monthly Summary":
 
             full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
 
+            # --- Show students without parent emails ---
+            unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+            unmatched_students["Reason"] = "No matching parent email"
+
+            if not unmatched_students.empty:
+                st.subheader("⚠️ Students Without Parent Emails")
+                st.dataframe(unmatched_students)
+                st.download_button(
+                    "Download Missing Parent Emails CSV",
+                    data=unmatched_students.to_csv(index=False),
+                    file_name="missing_parent_emails.csv"
+                )
+
             st.subheader("📊 Summary")
             unmatched = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]]
             matched_count = len(full_report.dropna(subset=["Parent Email"]))
