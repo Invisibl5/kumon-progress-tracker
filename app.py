@@ -249,7 +249,10 @@ if report_mode == "📅 Weekly Comparison":
             st.write(f"**Subject Line Preview:** {subject_line}")
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
-            preview_df = preview_df[preview_df["Parent Email"].apply(lambda x: is_valid_email(str(x)))]
+            if "Parent Email" in preview_df.columns:
+                preview_df = preview_df[preview_df["Parent Email"].apply(lambda x: is_valid_email(str(x)))]
+            else:
+                st.warning("⚠️ 'Parent Email' column not found in preview data. Skipping email preview filtering.")
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
             preview_df["Email Body"] = preview_df.apply(
                 lambda row: message_template.format(
@@ -504,7 +507,10 @@ elif report_mode == "🗓️ Monthly Summary":
             st.write(f"**Subject Line Preview:** {subject_line}")
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
-            preview_df = preview_df[preview_df["Parent Email"].apply(lambda x: is_valid_email(str(x)))]
+            if "Parent Email" in preview_df.columns:
+                preview_df = preview_df[preview_df["Parent Email"].apply(lambda x: is_valid_email(str(x)))]
+            else:
+                st.warning("⚠️ 'Parent Email' column not found in preview data. Skipping email preview filtering.")
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
             preview_df["Email Body"] = preview_df.apply(
                 lambda row: message_template.format(
