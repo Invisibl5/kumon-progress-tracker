@@ -307,7 +307,8 @@ if report_mode == "📅 Weekly Comparison":
                             'Parent Email': row['Parent Email'],
                             'Status': 'Test Mode'
                         })
-                        progress_bar.progress((i + 1) / total if total else 1.0)
+                        progress_value = min((i + 1) / total, 1.0) if total else 1.0
+                        progress_bar.progress(progress_value)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
                 else:
@@ -372,7 +373,8 @@ if report_mode == "📅 Weekly Comparison":
                                     'Parent Email': row.get('Parent Email', ''),
                                     'Error': str(e)
                                 })
-                            progress_bar.progress((i + 1) / total if total else 1.0)
+                            progress_value = min((i + 1) / total, 1.0) if total else 1.0
+                            progress_bar.progress(progress_value)
 
                         server.quit()
 
@@ -571,7 +573,8 @@ elif report_mode == "🗓️ Monthly Summary":
                             'Parent Email': row['Parent Email'],
                             'Status': 'Test Mode'
                         })
-                        progress_bar.progress((i + 1) / total if total else 1.0)
+                        progress_value = min((i + 1) / total, 1.0) if total else 1.0
+                        progress_bar.progress(progress_value)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
                 else:
@@ -635,7 +638,8 @@ elif report_mode == "🗓️ Monthly Summary":
                                     'Parent Email': row.get('Parent Email', ''),
                                     'Error': str(e)
                                 })
-                            progress_bar.progress((i + 1) / total if total else 1.0)
+                            progress_value = min((i + 1) / total, 1.0) if total else 1.0
+                            progress_bar.progress(progress_value)
 
                         server.quit()
 
