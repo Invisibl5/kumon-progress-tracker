@@ -201,7 +201,7 @@ if last_week_file and this_week_file:
         preview_df = full_report.copy()
         preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
         preview_df["Email Body"] = preview_df.apply(lambda row: message_template.format(
-            parent=row['Parent Name'],
+            parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
             student=row['Full Name'],
             worksheets=row['Worksheets This Week'],
             days=row['Study Days This Week'],
@@ -218,7 +218,7 @@ if last_week_file and this_week_file:
                 for _, row in full_report.iterrows():
                     print(f"TO: {row['Parent Email']}")
                     print(message_template.format(
-                        parent=row['Parent Name'],
+                        parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
                         student=row['Full Name'],
                         worksheets=row['Worksheets This Week'],
                         days=row['Study Days This Week'],
@@ -248,11 +248,11 @@ if last_week_file and this_week_file:
                             msg['Subject'] = subject_line
 
                             body = message_template.format(
-                                parent=str(row['Parent Name']),
-                                student=str(row['Full Name']),
-                                worksheets=str(row['Worksheets This Week']),
-                                days=str(row['Study Days This Week']),
-                                highest_ws=str(row['Highest WS Completed'])
+                                parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                                student=row['Full Name'],
+                                worksheets=row['Worksheets This Week'],
+                                days=row['Study Days This Week'],
+                                highest_ws=row['Highest WS Completed']
                             )
 
                             msg.attach(MIMEText(body, 'plain'))
