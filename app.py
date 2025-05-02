@@ -140,6 +140,10 @@ if last_week_file and this_week_file:
     if parent_map_file:
         parent_map = pd.read_csv(parent_map_file)
         parent_map.columns = parent_map.columns.str.strip()
+        # Ensure Login ID columns are string before merging
+        weekly_report["Login ID"] = weekly_report["Login ID"].astype(str)
+        parent_map["Login ID"] = parent_map["Login ID"].astype(str)
+        new_students["Login ID"] = new_students["Login ID"].astype(str)
         # Merge parent info into weekly_report on Login ID
         full_report = pd.merge(weekly_report, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
         full_report["Full Name"] = weekly_report["Full Name"]
