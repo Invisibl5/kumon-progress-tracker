@@ -14,7 +14,8 @@ if 'saved_settings' not in st.session_state:
         'email': '',
         'subject': '',
         'message': '',
-        'password': ''
+        'password': '',
+        'sheet_url': ''
     }
 
 # Use Eastern Time
@@ -154,18 +155,22 @@ if last_week_file and this_week_file:
         ),
         height=180
     )
+    # Parent email mapping via Google Sheets CSV export link
+    parent_map_url = st.text_input(
+        "Paste Google Sheets CSV export link for parent contacts",
+        value=st.session_state.saved_settings.get('sheet_url', '')
+    )
     # Save button for settings
     if st.button("💾 Save Email Settings"):
         st.session_state.saved_settings = {
             'email': sender_email,
             'subject': subject_line,
             'message': message_template,
-            'password': sender_pass
+            'password': sender_pass,
+            'sheet_url': parent_map_url
         }
         st.success("✅ Settings saved.")
 
-    # Parent email mapping via Google Sheets CSV export link
-    parent_map_url = st.text_input("Paste Google Sheets CSV export link for parent contacts")
     refresh = st.button("🔄 Refresh Parent Contact Data")
 
     if parent_map_url:
