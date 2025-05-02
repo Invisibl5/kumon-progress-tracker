@@ -354,6 +354,7 @@ if report_mode == "📅 Weekly Comparison":
                     st.dataframe(email_log_df)
                     st.download_button("Download Email Log", data=email_log_df.to_csv(index=False), file_name="email_log.csv")
 
+
 elif report_mode == "🗓️ Monthly Summary":
     st.subheader("🗓️ Monthly Summary Mode")
     st.write("Upload a single CSV file representing the end-of-month progress.")
@@ -371,3 +372,186 @@ elif report_mode == "🗓️ Monthly Summary":
 
         st.dataframe(summary)
         st.download_button("Download Monthly Summary CSV", data=summary.to_csv(index=False), file_name="monthly_summary.csv")
+
+        # Email options
+        st.subheader("📧 Email Monthly Reports to Parents")
+
+        sender_email = st.text_input("Sender Gmail address", value=st.session_state.saved_settings['email'])
+        sender_pass = st.text_input("App Password", type="password", value=st.session_state.saved_settings.get('password', ''))
+        subject_line = st.text_input(
+            "Email Subject",
+            value=st.session_state.saved_settings['subject'] or "Your Child's Monthly Study Progress"
+        )
+        message_template = st.text_area(
+            "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws})",
+            value=st.session_state.saved_settings['message'] or (
+                "Dear {parent},\n\n"
+                "Here is the monthly study summary for {student}:\n"
+                "- Worksheets completed: {worksheets}\n"
+                "- Study days: {days}\n"
+                "- Highest worksheet completed: {highest_ws}\n\n"
+                "Keep up the great work!\n"
+            ),
+            height=180
+        )
+
+        parent_map_url = st.text_input(
+            "Paste Google Sheets CSV export link for parent contacts",
+            value=st.session_state.saved_settings.get('sheet_url', '')
+        )
+
+        if st.button("💾 Save Email Settings"):
+            st.session_state.saved_settings = {
+                'email': sender_email,
+                'subject': subject_line,
+                'message': message_template,
+                'password': sender_pass,
+                'sheet_url': parent_map_url
+            }
+            st.success("✅ Settings saved.")
+
+        if parent_map_url:
+            if (
+                "docs.google.com/spreadsheets" in parent_map_url
+                and "export?format=csv" not in parent_map_url
+            ):
+                sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
+                if sheet_id_match:
+                    sheet_id = sheet_id_match.group(1)
+                    parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+
+            parent_map = load_parent_map(parent_map_url)
+            parent_map.columns = parent_map.columns.str.strip()
+            if "Login ID" not in parent_map.columns:
+                for col in parent_map.columns:
+                    if col.strip().lower() == "login id":
+                        parent_map.rename(columns={col: "Login ID"}, inplace=True)
+                        break
+            summary["Login ID"] = summary["Login ID"].astype(str)
+            parent_map["Login ID"] = parent_map["Login ID"].astype(str)
+
+            full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+
+            st.subheader("📊 Summary")
+            unmatched = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]]
+            matched_count = len(full_report.dropna(subset=["Parent Email"]))
+            missing_count = len(unmatched)
+            st.markdown(f"""
+- 📩 **{matched_count} students** matched with parent emails
+- ⚠️ **{missing_count} students** missing parent emails
+""")
+
+            st.subheader("🧪 Email Preview")
+            preview_df = full_report.copy()
+            preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
+            preview_df["Email Body"] = preview_df.apply(lambda row: message_template.format(
+                parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                student=row['Full Name'],
+                worksheets=row['Worksheets This Month'],
+                days=row['Study Days This Month'],
+                highest_ws=row['Highest WS Completed']
+            ), axis=1)
+            st.dataframe(preview_df[["Parent Name", "Parent Email", "Valid Email", "Email Body"]])
+
+            send_to_self = st.checkbox("Send preview email to myself only", value=False)
+            test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
+
+            if st.button("Send Emails"):
+                email_log = []
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                if test_mode:
+                    for _, row in full_report.iterrows():
+                        print(f"TO: {row['Parent Email']}")
+                        print(message_template.format(
+                            parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                            student=row['Full Name'],
+                            worksheets=row['Worksheets This Month'],
+                            days=row['Study Days This Month'],
+                            highest_ws=row['Highest WS Completed']
+                        ))
+                        email_log.append({
+                            'Timestamp': timestamp,
+                            'Login ID': row['Login ID'],
+                            'Student': row['Full Name'],
+                            'Parent Email': row['Parent Email'],
+                            'Status': 'Test Mode'
+                        })
+                    st.success("✅ Test mode: Emails printed to console.")
+                else:
+                    try:
+                        server = smtplib.SMTP("smtp.gmail.com", 587)
+                        server.starttls()
+                        server.login(sender_email, sender_pass)
+
+                        failed_emails = []
+
+                        if send_to_self:
+                            row = full_report.iloc[0]
+                            msg = MIMEMultipart()
+                            msg['From'] = sender_email
+                            msg['To'] = sender_email
+                            msg['Subject'] = subject_line
+                            body = message_template.format(
+                                parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                                student=row['Full Name'],
+                                worksheets=row['Worksheets This Month'],
+                                days=row['Study Days This Month'],
+                                highest_ws=row['Highest WS Completed']
+                            )
+                            msg.attach(MIMEText(body, 'plain'))
+                            server.send_message(msg)
+                            st.success("✅ Preview email sent to yourself.")
+                            server.quit()
+                            st.stop()
+
+                        for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
+                            try:
+                                msg = MIMEMultipart()
+                                msg['From'] = sender_email
+                                msg['To'] = str(row['Parent Email'])
+                                msg['Subject'] = subject_line
+
+                                body = message_template.format(
+                                    parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                                    student=row['Full Name'],
+                                    worksheets=row['Worksheets This Month'],
+                                    days=row['Study Days This Month'],
+                                    highest_ws=row['Highest WS Completed']
+                                )
+
+                                msg.attach(MIMEText(body, 'plain'))
+                                server.send_message(msg)
+                                email_log.append({
+                                    'Timestamp': timestamp,
+                                    'Login ID': row['Login ID'],
+                                    'Student': row['Full Name'],
+                                    'Parent Email': row['Parent Email'],
+                                    'Status': 'Sent'
+                                })
+                            except Exception as e:
+                                failed_emails.append({
+                                    'Login ID': row.get('Login ID', ''),
+                                    'Full Name': row.get('Full Name', ''),
+                                    'Parent Name': row.get('Parent Name', ''),
+                                    'Parent Email': row.get('Parent Email', ''),
+                                    'Error': str(e)
+                                })
+
+                        server.quit()
+
+                        if failed_emails:
+                            failed_df = pd.DataFrame(failed_emails)
+                            st.subheader("❌ Failed Email Report")
+                            st.dataframe(failed_df)
+                            st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
+                        else:
+                            st.success("✅ Emails sent successfully!")
+                    except Exception as e:
+                        st.error(f"❌ Failed to send emails: {e}")
+
+                if email_log:
+                    email_log_df = pd.DataFrame(email_log)
+                    st.subheader("📜 Email Log")
+                    st.dataframe(email_log_df)
+                    st.download_button("Download Email Log", data=email_log_df.to_csv(index=False), file_name="email_log.csv")
