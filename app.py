@@ -116,8 +116,6 @@ if last_week_file and this_week_file:
 
     st.subheader("📧 Email Weekly Reports to Parents")
 
-    test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
-
     # Instructional note for Gmail SMTP
     st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
 
@@ -193,6 +191,7 @@ if last_week_file and this_week_file:
 
     # Send emails button and logic (always visible if full_report exists)
     if 'full_report' in locals():
+        test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
         if st.button("Send Emails"):
             if test_mode:
                 for _, row in full_report.iterrows():
