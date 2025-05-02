@@ -199,7 +199,7 @@ if last_week_file and this_week_file:
         # --- Email Preview Section ---
         st.subheader("🧪 Email Preview")
         preview_df = full_report.copy()
-        preview_df["Valid Email"] = preview_df["Parent Email"].apply(lambda x: "✅" if is_valid_email(x) else "❌")
+        preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
         preview_df["Email Body"] = preview_df.apply(lambda row: message_template.format(
             parent=row['Parent Name'],
             student=row['Full Name'],
