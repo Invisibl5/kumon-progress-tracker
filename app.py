@@ -6,6 +6,7 @@ import re
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import time
 
 # Use Eastern Time
 eastern = pytz.timezone("America/New_York")
@@ -27,6 +28,10 @@ def extract_date_from_filename(filename):
     if match:
         return datetime.strptime(match.group(1), "%m%d%Y")
     return None
+
+# Helper to check if email is valid
+def is_valid_email(email):
+    return isinstance(email, str) and re.match(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", email)
 
 def load_parent_map(url):
     try:
@@ -191,8 +196,24 @@ if last_week_file and this_week_file:
 
     # Send emails button and logic (always visible if full_report exists)
     if 'full_report' in locals():
+        # --- Email Preview Section ---
+        st.subheader("🧪 Email Preview")
+        preview_df = full_report.copy()
+        preview_df["Valid Email"] = preview_df["Parent Email"].apply(lambda x: "✅" if is_valid_email(x) else "❌")
+        preview_df["Email Body"] = preview_df.apply(lambda row: message_template.format(
+            parent=row['Parent Name'],
+            student=row['Full Name'],
+            worksheets=row['Worksheets This Week'],
+            days=row['Study Days This Week'],
+            highest_ws=row['Highest WS Completed']
+        ), axis=1)
+        st.dataframe(preview_df[["Parent Name", "Parent Email", "Valid Email", "Email Body"]])
+
+        # --- Send Emails Section ---
         test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
         if st.button("Send Emails"):
+            email_log = []
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if test_mode:
                 for _, row in full_report.iterrows():
                     print(f"TO: {row['Parent Email']}")
@@ -203,6 +224,13 @@ if last_week_file and this_week_file:
                         days=row['Study Days This Week'],
                         highest_ws=row['Highest WS Completed']
                     ))
+                    email_log.append({
+                        'Timestamp': timestamp,
+                        'Login ID': row['Login ID'],
+                        'Student': row['Full Name'],
+                        'Parent Email': row['Parent Email'],
+                        'Status': 'Test Mode'
+                    })
                 st.success("✅ Test mode: Emails printed to console.")
             else:
                 try:
@@ -229,6 +257,13 @@ if last_week_file and this_week_file:
 
                             msg.attach(MIMEText(body, 'plain'))
                             server.send_message(msg)
+                            email_log.append({
+                                'Timestamp': timestamp,
+                                'Login ID': row['Login ID'],
+                                'Student': row['Full Name'],
+                                'Parent Email': row['Parent Email'],
+                                'Status': 'Sent'
+                            })
                         except Exception as e:
                             failed_emails.append({
                                 'Login ID': row.get('Login ID', ''),
@@ -249,3 +284,9 @@ if last_week_file and this_week_file:
                         st.success("✅ Emails sent successfully!")
                 except Exception as e:
                     st.error(f"❌ Failed to send emails: {e}")
+            # --- Show Email Log if any emails handled ---
+            if email_log:
+                email_log_df = pd.DataFrame(email_log)
+                st.subheader("📜 Email Log")
+                st.dataframe(email_log_df)
+                st.download_button("Download Email Log", data=email_log_df.to_csv(index=False), file_name="email_log.csv")
