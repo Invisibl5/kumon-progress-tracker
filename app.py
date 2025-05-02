@@ -143,7 +143,7 @@ if last_week_file and this_week_file:
         unmatched_parents["Reason"] = "No matching parent email"
         # Merge parent info into new_students on merge_key
         new_students_merged = pd.merge(new_students, parent_map, on="merge_key", how="left", suffixes=("", "_parent"))
-        new_students_merged["Full Name"] = new_students["Full Name"]
+        new_students_merged["Full Name"] = new_students_merged["Full Name"].combine_first(new_students["Full Name"])
         if "Login ID" not in new_students_merged.columns:
             new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
         unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
