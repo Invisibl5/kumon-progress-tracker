@@ -132,9 +132,13 @@ if last_week_file and this_week_file:
         parent_map.columns = parent_map.columns.str.strip()
         # Merge parent info into weekly_report
         full_report = pd.merge(weekly_report, parent_map, on="Full Name", how="left")
+        if "Login ID" not in full_report.columns:
+            full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
         unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
         unmatched_parents["Reason"] = "No matching parent email"
         new_students_merged = pd.merge(new_students, parent_map, on="Full Name", how="left")
+        if "Login ID" not in new_students_merged.columns:
+            new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
         unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
         unmatched_new["Reason"] = "New student with no parent email"
         unmatched_all = pd.concat([unmatched_parents, unmatched_new], ignore_index=True)
