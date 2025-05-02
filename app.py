@@ -133,99 +133,101 @@ if last_week_file and this_week_file:
         height=180
     )
 
-    # Parent email mapping upload
-    st.markdown("Upload a CSV mapping student names to parent names and parent emails. Columns required: Full Name, Parent Name, Parent Email")
-    parent_map_file = st.file_uploader("Parent Email Mapping CSV", type="csv", key="parent_map")
+    # Parent email mapping via Google Sheets CSV export link
+    parent_map_url = st.text_input("Paste Google Sheets CSV export link for parent contacts")
 
-    if parent_map_file:
-        parent_map = pd.read_csv(parent_map_file)
-        parent_map.columns = parent_map.columns.str.strip()
-        # Ensure Login ID columns are string before merging
-        weekly_report["Login ID"] = weekly_report["Login ID"].astype(str)
-        parent_map["Login ID"] = parent_map["Login ID"].astype(str)
-        new_students["Login ID"] = new_students["Login ID"].astype(str)
-        # Merge parent info into weekly_report on Login ID
-        full_report = pd.merge(weekly_report, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
-        full_report["Full Name"] = weekly_report["Full Name"]
-        if "Login ID" not in full_report.columns:
-            full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
-        unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
-        unmatched_parents["Reason"] = "No matching parent email"
-        # Merge parent info into new_students on Login ID
-        new_students_merged = pd.merge(new_students, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
-        new_students_merged["Full Name"] = new_students_merged["Full Name"].combine_first(new_students["Full Name"])
-        if "Login ID" not in new_students_merged.columns:
-            new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
-        unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
-        unmatched_new["Reason"] = "New student with no parent email"
-        unmatched_all = pd.concat([unmatched_parents, unmatched_new], ignore_index=True)
-        if not unmatched_all.empty:
-            st.subheader("⚠️ Students Without Parent Emails")
-            st.dataframe(unmatched_all)
-            st.download_button("Download Missing Parent Emails CSV", data=unmatched_all.to_csv(index=False), file_name="missing_parent_emails.csv")
-        if full_report["Parent Email"].isnull().any():
-            st.warning("⚠️ Some students do not have a matching parent email in the mapping file.")
-        else:
-            st.success("✅ All students matched to parent emails.")
-
-        # Checkbox for test mode
-        test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
-
-        # Send emails button and logic
-        if st.button("Send Emails"):
-            if test_mode:
-                for _, row in full_report.iterrows():
-                    print(f"TO: {row['Parent Email']}")
-                    print(message_template.format(
-                        parent=row['Parent Name'],
-                        student=row['Full Name'],
-                        worksheets=row['Worksheets This Week'],
-                        days=row['Study Days This Week'],
-                        highest_ws=row['Highest WS Completed']
-                    ))
-                st.success("✅ Test mode: Emails printed to console.")
+    if parent_map_url:
+        try:
+            parent_map = pd.read_csv(parent_map_url)
+            parent_map.columns = parent_map.columns.str.strip()
+            # Ensure Login ID columns are string before merging
+            weekly_report["Login ID"] = weekly_report["Login ID"].astype(str)
+            parent_map["Login ID"] = parent_map["Login ID"].astype(str)
+            new_students["Login ID"] = new_students["Login ID"].astype(str)
+            # Merge parent info into weekly_report on Login ID
+            full_report = pd.merge(weekly_report, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+            full_report["Full Name"] = weekly_report["Full Name"]
+            if "Login ID" not in full_report.columns:
+                full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
+            unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+            unmatched_parents["Reason"] = "No matching parent email"
+            # Merge parent info into new_students on Login ID
+            new_students_merged = pd.merge(new_students, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+            new_students_merged["Full Name"] = new_students_merged["Full Name"].combine_first(new_students["Full Name"])
+            if "Login ID" not in new_students_merged.columns:
+                new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
+            unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+            unmatched_new["Reason"] = "New student with no parent email"
+            unmatched_all = pd.concat([unmatched_parents, unmatched_new], ignore_index=True)
+            if not unmatched_all.empty:
+                st.subheader("⚠️ Students Without Parent Emails")
+                st.dataframe(unmatched_all)
+                st.download_button("Download Missing Parent Emails CSV", data=unmatched_all.to_csv(index=False), file_name="missing_parent_emails.csv")
+            if full_report["Parent Email"].isnull().any():
+                st.warning("⚠️ Some students do not have a matching parent email in the mapping file.")
             else:
-                try:
-                    server = smtplib.SMTP("smtp.gmail.com", 587)
-                    server.starttls()
-                    server.login(sender_email, sender_pass)
+                st.success("✅ All students matched to parent emails.")
 
-                    failed_emails = []
+            # Checkbox for test mode
+            test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
 
-                    for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
-                        try:
-                            msg = MIMEMultipart()
-                            msg['From'] = sender_email
-                            msg['To'] = str(row['Parent Email'])
-                            msg['Subject'] = subject_line
+            # Send emails button and logic
+            if st.button("Send Emails"):
+                if test_mode:
+                    for _, row in full_report.iterrows():
+                        print(f"TO: {row['Parent Email']}")
+                        print(message_template.format(
+                            parent=row['Parent Name'],
+                            student=row['Full Name'],
+                            worksheets=row['Worksheets This Week'],
+                            days=row['Study Days This Week'],
+                            highest_ws=row['Highest WS Completed']
+                        ))
+                    st.success("✅ Test mode: Emails printed to console.")
+                else:
+                    try:
+                        server = smtplib.SMTP("smtp.gmail.com", 587)
+                        server.starttls()
+                        server.login(sender_email, sender_pass)
 
-                            body = message_template.format(
-                                parent=str(row['Parent Name']),
-                                student=str(row['Full Name']),
-                                worksheets=str(row['Worksheets This Week']),
-                                days=str(row['Study Days This Week']),
-                                highest_ws=str(row['Highest WS Completed'])
-                            )
+                        failed_emails = []
 
-                            msg.attach(MIMEText(body, 'plain'))
-                            server.send_message(msg)
-                        except Exception as e:
-                            failed_emails.append({
-                                'Login ID': row.get('Login ID', ''),
-                                'Full Name': row.get('Full Name', ''),
-                                'Parent Name': row.get('Parent Name', ''),
-                                'Parent Email': row.get('Parent Email', ''),
-                                'Error': str(e)
-                            })
+                        for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
+                            try:
+                                msg = MIMEMultipart()
+                                msg['From'] = sender_email
+                                msg['To'] = str(row['Parent Email'])
+                                msg['Subject'] = subject_line
 
-                    server.quit()
+                                body = message_template.format(
+                                    parent=str(row['Parent Name']),
+                                    student=str(row['Full Name']),
+                                    worksheets=str(row['Worksheets This Week']),
+                                    days=str(row['Study Days This Week']),
+                                    highest_ws=str(row['Highest WS Completed'])
+                                )
 
-                    if failed_emails:
-                        failed_df = pd.DataFrame(failed_emails)
-                        st.subheader("❌ Failed Email Report")
-                        st.dataframe(failed_df)
-                        st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
-                    else:
-                        st.success("✅ Emails sent successfully!")
-                except Exception as e:
-                    st.error(f"❌ Failed to send emails: {e}")
+                                msg.attach(MIMEText(body, 'plain'))
+                                server.send_message(msg)
+                            except Exception as e:
+                                failed_emails.append({
+                                    'Login ID': row.get('Login ID', ''),
+                                    'Full Name': row.get('Full Name', ''),
+                                    'Parent Name': row.get('Parent Name', ''),
+                                    'Parent Email': row.get('Parent Email', ''),
+                                    'Error': str(e)
+                                })
+
+                        server.quit()
+
+                        if failed_emails:
+                            failed_df = pd.DataFrame(failed_emails)
+                            st.subheader("❌ Failed Email Report")
+                            st.dataframe(failed_df)
+                            st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
+                        else:
+                            st.success("✅ Emails sent successfully!")
+                    except Exception as e:
+                        st.error(f"❌ Failed to send emails: {e}")
+        except Exception as e:
+            st.error(f"❌ Failed to load parent mapping CSV from URL: {e}")
