@@ -58,7 +58,7 @@ if last_week_file and this_week_file:
     this_trimmed = this_trimmed.rename(columns={
         "# of WS": "WS_This", 
         "# of Study Days": "Days_This"
-    })
+    }).copy()
 
     # Merge on Login ID (inner to find returning students)
     merged = pd.merge(this_trimmed, last_trimmed, on="Login ID", how="inner", suffixes=("_This", "_Last"))
@@ -82,8 +82,8 @@ if last_week_file and this_week_file:
     # Find new students
     new_students = this_trimmed[~this_trimmed["Login ID"].isin(last_trimmed["Login ID"])]
     new_students = new_students.rename(columns={
-        "# of WS": "Worksheets This Week",
-        "# of Study Days": "Study Days This Week"
+        "WS_This": "Worksheets This Week",
+        "Days_This": "Study Days This Week"
     })
 
     st.subheader("📈 Returning Students – Weekly Progress")
