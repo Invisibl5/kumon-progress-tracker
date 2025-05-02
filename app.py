@@ -28,6 +28,14 @@ def extract_date_from_filename(filename):
         return datetime.strptime(match.group(1), "%m%d%Y")
     return None
 
+def load_parent_map(url):
+    try:
+        parent_map = pd.read_csv(url)
+    except Exception:
+        parent_map = pd.read_csv(url, on_bad_lines='skip')
+        st.warning("⚠️ Some rows in the parent contact sheet were skipped due to formatting issues.")
+    return parent_map
+
 if last_week_file and this_week_file:
     # Display file names
     # st.markdown(f"**Last Week File:** {last_week_file.name}")
@@ -137,68 +145,49 @@ if last_week_file and this_week_file:
     parent_map_url = st.text_input("Paste Google Sheets CSV export link for parent contacts")
     refresh = st.button("🔄 Refresh Parent Contact Data")
 
-    # Convert Google Sheets view link to export link, if needed
-    if (
-        parent_map_url
-        and "docs.google.com/spreadsheets" in parent_map_url
-        and "export?format=csv" not in parent_map_url
-    ):
-        sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
-        if sheet_id_match:
-            sheet_id = sheet_id_match.group(1)
-            parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+    if parent_map_url:
+        # Always load the map, and allow refresh to be a manual trigger too
+        if (
+            "docs.google.com/spreadsheets" in parent_map_url
+            and "export?format=csv" not in parent_map_url
+        ):
+            sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
+            if sheet_id_match:
+                sheet_id = sheet_id_match.group(1)
+                parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 
-    # Checkbox for test mode (always visible after data is loaded)
-    test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
-
-    if parent_map_url and refresh:
-        try:
-            try:
-                parent_map = pd.read_csv(parent_map_url)
-            except Exception:
-                parent_map = pd.read_csv(parent_map_url, on_bad_lines='skip')
-                st.warning("⚠️ Some rows in the parent contact sheet were skipped due to formatting issues.")
-            # Show columns loaded for validation
-            st.write("Loaded Parent Map Columns:", parent_map.columns.tolist())
-            parent_map.columns = parent_map.columns.str.strip()
-            # Ensure the column 'Login ID' is stripped and renamed if needed
-            if "Login ID" not in parent_map.columns:
-                # Try to find a column that looks like "Login ID" with formatting issues
-                for col in parent_map.columns:
-                    if col.strip().lower() == "login id":
-                        parent_map.rename(columns={col: "Login ID"}, inplace=True)
-                        break
-            # Ensure Login ID columns are string before merging
-            weekly_report["Login ID"] = weekly_report["Login ID"].astype(str)
-            parent_map["Login ID"] = parent_map["Login ID"].astype(str)
-            new_students["Login ID"] = new_students["Login ID"].astype(str)
-            # Merge parent info into weekly_report on Login ID
-            full_report = pd.merge(weekly_report, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
-            full_report["Full Name"] = weekly_report["Full Name"]
-            if "Login ID" not in full_report.columns:
-                full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
-            unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
-            unmatched_parents["Reason"] = "No matching parent email"
-            # Merge parent info into new_students on Login ID
-            new_students_merged = pd.merge(new_students, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
-            new_students_merged["Full Name"] = new_students_merged["Full Name"].combine_first(new_students["Full Name"])
-            if "Login ID" not in new_students_merged.columns:
-                new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
-            unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
-            unmatched_new["Reason"] = "New student with no parent email"
-            unmatched_all = pd.concat([unmatched_parents, unmatched_new], ignore_index=True)
-            if not unmatched_all.empty:
-                st.subheader("⚠️ Students Without Parent Emails")
-                st.dataframe(unmatched_all)
-                st.download_button("Download Missing Parent Emails CSV", data=unmatched_all.to_csv(index=False), file_name="missing_parent_emails.csv")
-            if full_report["Parent Email"].isnull().any():
-                st.warning("⚠️ Some students do not have a matching parent email in the mapping file.")
-            else:
-                st.success("✅ All students matched to parent emails.")
-
-            # (Sending emails UI and logic moved below, outside refresh block)
-        except Exception as e:
-            st.error(f"❌ Failed to load parent mapping CSV from URL: {e}")
+        parent_map = load_parent_map(parent_map_url)
+        st.write("Loaded Parent Map Columns:", parent_map.columns.tolist())
+        parent_map.columns = parent_map.columns.str.strip()
+        if "Login ID" not in parent_map.columns:
+            for col in parent_map.columns:
+                if col.strip().lower() == "login id":
+                    parent_map.rename(columns={col: "Login ID"}, inplace=True)
+                    break
+        weekly_report["Login ID"] = weekly_report["Login ID"].astype(str)
+        parent_map["Login ID"] = parent_map["Login ID"].astype(str)
+        new_students["Login ID"] = new_students["Login ID"].astype(str)
+        full_report = pd.merge(weekly_report, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+        full_report["Full Name"] = weekly_report["Full Name"]
+        if "Login ID" not in full_report.columns:
+            full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
+        unmatched_parents = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+        unmatched_parents["Reason"] = "No matching parent email"
+        new_students_merged = pd.merge(new_students, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+        new_students_merged["Full Name"] = new_students_merged["Full Name"].combine_first(new_students["Full Name"])
+        if "Login ID" not in new_students_merged.columns:
+            new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
+        unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+        unmatched_new["Reason"] = "New student with no parent email"
+        unmatched_all = pd.concat([unmatched_parents, unmatched_new], ignore_index=True)
+        if not unmatched_all.empty:
+            st.subheader("⚠️ Students Without Parent Emails")
+            st.dataframe(unmatched_all)
+            st.download_button("Download Missing Parent Emails CSV", data=unmatched_all.to_csv(index=False), file_name="missing_parent_emails.csv")
+        if full_report["Parent Email"].isnull().any():
+            st.warning("⚠️ Some students do not have a matching parent email in the mapping file.")
+        else:
+            st.success("✅ All students matched to parent emails.")
 
     # Send emails button and logic (always visible if full_report exists)
     if 'full_report' in locals():
