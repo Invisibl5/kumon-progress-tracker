@@ -232,12 +232,12 @@ if report_mode == "📅 Weekly Comparison":
                 ["Worksheets", "Study Days"],
                 as_=["Metric", "Value"]
             ).mark_bar().encode(
-                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45)),
+                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45, labelLimit=1000)),
                 y="Value:Q",
                 color="Metric:N",
                 tooltip=["Full Name:N", "Metric:N", "Value:Q"]
             ).properties(
-                width=700,
+                width=alt.Step(25),
                 height=400
             )
 
@@ -470,12 +470,12 @@ elif report_mode == "🗓️ Monthly Summary":
                 ["Worksheets", "Study Days"],
                 as_=["Metric", "Value"]
             ).mark_bar().encode(
-                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45)),
+                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45, labelLimit=1000)),
                 y="Value:Q",
                 color="Metric:N",
                 tooltip=["Full Name:N", "Metric:N", "Value:Q"]
             ).properties(
-                width=700,
+                width=alt.Step(25),
                 height=400
             )
 
