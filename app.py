@@ -418,6 +418,7 @@ elif report_mode == "🗓️ Monthly Summary":
 
         # Email options
         st.subheader("📧 Email Monthly Reports to Parents")
+        st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
 
         sender_email = st.text_input("Sender Gmail address", value=st.session_state.saved_settings['email'])
         sender_pass = st.text_input("App Password", type="password", value=st.session_state.saved_settings.get('password', ''))
