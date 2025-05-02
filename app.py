@@ -130,6 +130,10 @@ if last_week_file and this_week_file:
     if parent_map_file:
         parent_map = pd.read_csv(parent_map_file)
         parent_map.columns = parent_map.columns.str.strip()
+        # Normalize Full Name columns to lowercase before merging
+        weekly_report["Full Name"] = weekly_report["Full Name"].str.lower()
+        parent_map["Full Name"] = parent_map["Full Name"].str.lower()
+        new_students["Full Name"] = new_students["Full Name"].str.lower()
         # Merge parent info into weekly_report
         full_report = pd.merge(weekly_report, parent_map, on="Full Name", how="left")
         if "Login ID" not in full_report.columns:
