@@ -251,8 +251,7 @@ if report_mode == "📅 Weekly Comparison":
             preview_df = full_report.copy()
             # Only filter valid emails if "Parent Email" exists
             if "Parent Email" in preview_df.columns:
-                valid_mask = preview_df["Parent Email"].astype(str).apply(is_valid_email)
-                preview_df = preview_df[valid_mask]
+                preview_df = preview_df[preview_df["Parent Email"].astype(str).apply(lambda x: isinstance(x, str) and re.match(r"[^@\s]+@[^@\s]+\.[^@\s]+", x) is not None)]
             else:
                 st.warning("⚠️ 'Parent Email' column not found. Skipping filtering of valid emails.")
             preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
