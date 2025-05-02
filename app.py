@@ -31,7 +31,7 @@ def extract_date_from_filename(filename):
 
 # Helper to check if email is valid
 def is_valid_email(email):
-    return isinstance(email, str) and re.match(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", email)
+    return isinstance(email, str) and re.match(r"[^@\s]+@[^@\s]+\.[^@\s]+", email)
 
 def load_parent_map(url):
     try:
