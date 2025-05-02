@@ -1,12 +1,17 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import pytz
 import re
+
+# Use Eastern Time
+eastern = pytz.timezone("America/New_York")
+today = datetime.now(eastern)
 
 st.title("📊 Weekly Study Activity Tracker")
 
 # Display today's date
-st.markdown(f"**Report generated on:** {datetime.today().strftime('%B %d, %Y')}")
+st.markdown(f"**Report generated on:** {today.strftime('%B %d, %Y')} (Eastern Time)")
 
 st.write("Upload last week's and this week's CSV files to compare study progress.")
 
