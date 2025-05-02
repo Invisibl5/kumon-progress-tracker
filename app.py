@@ -139,7 +139,16 @@ if last_week_file and this_week_file:
     if parent_map_url:
         try:
             parent_map = pd.read_csv(parent_map_url)
+            # Show columns loaded for validation
+            st.write("Loaded Parent Map Columns:", parent_map.columns.tolist())
             parent_map.columns = parent_map.columns.str.strip()
+            # Ensure the column 'Login ID' is stripped and renamed if needed
+            if "Login ID" not in parent_map.columns:
+                # Try to find a column that looks like "Login ID" with formatting issues
+                for col in parent_map.columns:
+                    if col.strip().lower() == "login id":
+                        parent_map.rename(columns={col: "Login ID"}, inplace=True)
+                        break
             # Ensure Login ID columns are string before merging
             weekly_report["Login ID"] = weekly_report["Login ID"].astype(str)
             parent_map["Login ID"] = parent_map["Login ID"].astype(str)
