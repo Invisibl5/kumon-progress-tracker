@@ -8,6 +8,14 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import time
 
+# --- Session State for Settings ---
+if 'saved_settings' not in st.session_state:
+    st.session_state.saved_settings = {
+        'email': '',
+        'subject': '',
+        'message': ''
+    }
+
 # Use Eastern Time
 eastern = pytz.timezone("America/New_York")
 today = datetime.now(eastern)
@@ -49,6 +57,8 @@ if last_week_file and this_week_file:
     # Try to extract dates
     date_last = extract_date_from_filename(last_week_file.name)
     date_this = extract_date_from_filename(this_week_file.name)
+    # --- Formatted Date Range String ---
+    date_range_str = f"{date_last.strftime('%B %d')} to {date_this.strftime('%B %d')}" if date_last and date_this else ""
 
     # Infer subject type from filename
     subject_type = ""
@@ -124,20 +134,19 @@ if last_week_file and this_week_file:
     # Instructional note for Gmail SMTP
     st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
 
-    # Email login fields
-    sender_email = st.text_input("Sender Gmail address")
+    # --- Email Settings Section (with session state) ---
+    sender_email = st.text_input("Sender Gmail address", value=st.session_state.saved_settings['email'])
     sender_pass = st.text_input("App Password", type="password")
     subject_line = st.text_input(
         "Email Subject",
-        value=f"Your Child's Weekly {subject_type} Progress" if subject_type else "Your Child's Weekly Study Progress"
+        value=st.session_state.saved_settings['subject'] or (f"Your Child's Weekly {subject_type} Progress" if subject_type else "Your Child's Weekly Study Progress")
     )
-
-    # Message template
+    # Message template with new default and {date_range}
     message_template = st.text_area(
-        "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws})",
-        value=(
+        "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws}, {date_range})",
+        value=st.session_state.saved_settings['message'] or (
             "Dear {parent},\n\n"
-            "Here is the weekly study update for {student}:\n"
+            "Here is the weekly study update for {student} from {date_range}:\n"
             "- Worksheets completed this week: {worksheets}\n"
             "- Study days this week: {days}\n"
             "- Highest worksheet completed: {highest_ws}\n\n"
@@ -145,6 +154,14 @@ if last_week_file and this_week_file:
         ),
         height=180
     )
+    # Save button for settings
+    if st.button("💾 Save Email Settings"):
+        st.session_state.saved_settings = {
+            'email': sender_email,
+            'subject': subject_line,
+            'message': message_template
+        }
+        st.success("✅ Settings saved.")
 
     # Parent email mapping via Google Sheets CSV export link
     parent_map_url = st.text_input("Paste Google Sheets CSV export link for parent contacts")
@@ -196,6 +213,17 @@ if last_week_file and this_week_file:
 
     # Send emails button and logic (always visible if full_report exists)
     if 'full_report' in locals():
+        # --- Dashboard Summary ---
+        st.subheader("📊 Summary")
+        total_sent = len(full_report.dropna(subset=["Parent Email"]))
+        total_new = len(new_students)
+        total_missing = len(unmatched_all) if 'unmatched_all' in locals() else 0
+        st.markdown(f"""
+- 📩 **{total_sent} students** matched with parent emails
+- 🆕 **{total_new} new students**
+- ⚠️ **{total_missing} students** missing parent emails
+""")
+
         # --- Email Preview Section ---
         st.subheader("🧪 Email Preview")
         preview_df = full_report.copy()
@@ -205,9 +233,13 @@ if last_week_file and this_week_file:
             student=row['Full Name'],
             worksheets=row['Worksheets This Week'],
             days=row['Study Days This Week'],
-            highest_ws=row['Highest WS Completed']
+            highest_ws=row['Highest WS Completed'],
+            date_range=date_range_str
         ), axis=1)
         st.dataframe(preview_df[["Parent Name", "Parent Email", "Valid Email", "Email Body"]])
+
+        # --- Send to Self Toggle ---
+        send_to_self = st.checkbox("Send preview email to myself only", value=False)
 
         # --- Send Emails Section ---
         test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
@@ -222,7 +254,8 @@ if last_week_file and this_week_file:
                         student=row['Full Name'],
                         worksheets=row['Worksheets This Week'],
                         days=row['Study Days This Week'],
-                        highest_ws=row['Highest WS Completed']
+                        highest_ws=row['Highest WS Completed'],
+                        date_range=date_range_str
                     ))
                     email_log.append({
                         'Timestamp': timestamp,
@@ -240,6 +273,27 @@ if last_week_file and this_week_file:
 
                     failed_emails = []
 
+                    # --- If send_to_self: only send one preview email to self and return ---
+                    if send_to_self:
+                        row = full_report.iloc[0]
+                        msg = MIMEMultipart()
+                        msg['From'] = sender_email
+                        msg['To'] = sender_email
+                        msg['Subject'] = subject_line
+                        body = message_template.format(
+                            parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                            student=row['Full Name'],
+                            worksheets=row['Worksheets This Week'],
+                            days=row['Study Days This Week'],
+                            highest_ws=row['Highest WS Completed'],
+                            date_range=date_range_str
+                        )
+                        msg.attach(MIMEText(body, 'plain'))
+                        server.send_message(msg)
+                        st.success("✅ Preview email sent to yourself.")
+                        server.quit()
+                        return
+
                     for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
                         try:
                             msg = MIMEMultipart()
@@ -252,7 +306,8 @@ if last_week_file and this_week_file:
                                 student=row['Full Name'],
                                 worksheets=row['Worksheets This Week'],
                                 days=row['Study Days This Week'],
-                                highest_ws=row['Highest WS Completed']
+                                highest_ws=row['Highest WS Completed'],
+                                date_range=date_range_str
                             )
 
                             msg.attach(MIMEText(body, 'plain'))
