@@ -226,7 +226,22 @@ if report_mode == "📅 Weekly Comparison":
             chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
             chart_df = chart_df.dropna(subset=["Full Name"])
             chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
-            st.bar_chart(chart_data)
+            import altair as alt
+
+            chart = alt.Chart(chart_data.reset_index()).transform_fold(
+                ["Worksheets", "Study Days"],
+                as_=["Metric", "Value"]
+            ).mark_bar().encode(
+                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45)),
+                y="Value:Q",
+                color="Metric:N",
+                tooltip=["Full Name:N", "Metric:N", "Value:Q"]
+            ).properties(
+                width=700,
+                height=400
+            )
+
+            st.altair_chart(chart, use_container_width=True)
 
         # Send emails button and logic (always visible if full_report exists)
         if 'full_report' in locals():
@@ -449,7 +464,22 @@ elif report_mode == "🗓️ Monthly Summary":
             chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
             chart_df = chart_df.dropna(subset=["Full Name"])
             chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
-            st.bar_chart(chart_data)
+            import altair as alt
+
+            chart = alt.Chart(chart_data.reset_index()).transform_fold(
+                ["Worksheets", "Study Days"],
+                as_=["Metric", "Value"]
+            ).mark_bar().encode(
+                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45)),
+                y="Value:Q",
+                color="Metric:N",
+                tooltip=["Full Name:N", "Metric:N", "Value:Q"]
+            ).properties(
+                width=700,
+                height=400
+            )
+
+            st.altair_chart(chart, use_container_width=True)
 
             # --- Show students without parent emails ---
             unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
