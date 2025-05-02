@@ -13,7 +13,8 @@ if 'saved_settings' not in st.session_state:
     st.session_state.saved_settings = {
         'email': '',
         'subject': '',
-        'message': ''
+        'message': '',
+        'password': ''
     }
 
 # Use Eastern Time
@@ -136,7 +137,7 @@ if last_week_file and this_week_file:
 
     # --- Email Settings Section (with session state) ---
     sender_email = st.text_input("Sender Gmail address", value=st.session_state.saved_settings['email'])
-    sender_pass = st.text_input("App Password", type="password")
+    sender_pass = st.text_input("App Password", type="password", value=st.session_state.saved_settings['password'])
     subject_line = st.text_input(
         "Email Subject",
         value=st.session_state.saved_settings['subject'] or (f"Your Child's Weekly {subject_type} Progress" if subject_type else "Your Child's Weekly Study Progress")
@@ -159,7 +160,8 @@ if last_week_file and this_week_file:
         st.session_state.saved_settings = {
             'email': sender_email,
             'subject': subject_line,
-            'message': message_template
+            'message': message_template,
+            'password': sender_pass
         }
         st.success("✅ Settings saved.")
 
