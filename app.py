@@ -27,8 +27,8 @@ def extract_date_from_filename(filename):
 
 if last_week_file and this_week_file:
     # Display file names
-    st.markdown(f"**Last Week File:** {last_week_file.name}")
-    st.markdown(f"**This Week File:** {this_week_file.name}")
+    # st.markdown(f"**Last Week File:** {last_week_file.name}")
+    # st.markdown(f"**This Week File:** {this_week_file.name}")
 
     # Try to extract dates
     date_last = extract_date_from_filename(last_week_file.name)
