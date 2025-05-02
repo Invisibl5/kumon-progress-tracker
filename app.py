@@ -138,7 +138,11 @@ if last_week_file and this_week_file:
 
     if parent_map_url:
         try:
-            parent_map = pd.read_csv(parent_map_url)
+            try:
+                parent_map = pd.read_csv(parent_map_url)
+            except Exception:
+                parent_map = pd.read_csv(parent_map_url, on_bad_lines='skip')
+                st.warning("⚠️ Some rows in the parent contact sheet were skipped due to formatting issues.")
             # Show columns loaded for validation
             st.write("Loaded Parent Map Columns:", parent_map.columns.tolist())
             parent_map.columns = parent_map.columns.str.strip()
