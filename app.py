@@ -64,7 +64,7 @@ if last_week_file and this_week_file:
     merged = pd.merge(this_trimmed, last_trimmed, on="Login ID", how="inner", suffixes=("_This", "_Last"))
 
     # Calculate weekly difference
-    merged["Worksheets This Week"] = merged["WS_This"] - merged["WS_Last"]
+    merged["Worksheets This Week"] = merged["Worksheets This Week"] - merged["Worksheets Last Week"]
     merged["Study Days This Week"] = merged["Days_This"] - merged["Days_Last"]
 
     weekly_report = merged[["Login ID", "Full Name_This", "Worksheets This Week", "Study Days This Week"]]
