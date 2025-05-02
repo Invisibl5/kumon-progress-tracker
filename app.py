@@ -361,6 +361,7 @@ elif report_mode == "🗓️ Monthly Summary":
     monthly_file = st.file_uploader("Upload Monthly Report CSV", type="csv", key="monthly")
 
     if monthly_file:
+        date_range_str = "this month"
         month_df = pd.read_csv(monthly_file)
         month_df["Login ID"] = month_df["Login ID"].astype(str)
 
@@ -383,7 +384,7 @@ elif report_mode == "🗓️ Monthly Summary":
             value=st.session_state.saved_settings['subject'] or "Your Child's Monthly Study Progress"
         )
         message_template = st.text_area(
-            "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws})",
+            "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws}, {date_range})",
             value=st.session_state.saved_settings['message'] or (
                 "Dear {parent},\n\n"
                 "Here is the monthly study summary for {student}:\n"
@@ -449,7 +450,8 @@ elif report_mode == "🗓️ Monthly Summary":
                 student=row['Full Name'],
                 worksheets=row['Worksheets This Month'],
                 days=row['Study Days This Month'],
-                highest_ws=row['Highest WS Completed']
+                highest_ws=row['Highest WS Completed'],
+                date_range=date_range_str
             ), axis=1)
             st.dataframe(preview_df[["Parent Name", "Parent Email", "Valid Email", "Email Body"]])
 
@@ -468,7 +470,8 @@ elif report_mode == "🗓️ Monthly Summary":
                             student=row['Full Name'],
                             worksheets=row['Worksheets This Month'],
                             days=row['Study Days This Month'],
-                            highest_ws=row['Highest WS Completed']
+                            highest_ws=row['Highest WS Completed'],
+                            date_range=date_range_str
                         ))
                         email_log.append({
                             'Timestamp': timestamp,
@@ -497,7 +500,8 @@ elif report_mode == "🗓️ Monthly Summary":
                                 student=row['Full Name'],
                                 worksheets=row['Worksheets This Month'],
                                 days=row['Study Days This Month'],
-                                highest_ws=row['Highest WS Completed']
+                                highest_ws=row['Highest WS Completed'],
+                                date_range=date_range_str
                             )
                             msg.attach(MIMEText(body, 'plain'))
                             server.send_message(msg)
@@ -517,7 +521,8 @@ elif report_mode == "🗓️ Monthly Summary":
                                     student=row['Full Name'],
                                     worksheets=row['Worksheets This Month'],
                                     days=row['Study Days This Month'],
-                                    highest_ws=row['Highest WS Completed']
+                                    highest_ws=row['Highest WS Completed'],
+                                    date_range=date_range_str
                                 )
 
                                 msg.attach(MIMEText(body, 'plain'))
