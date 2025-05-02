@@ -273,7 +273,7 @@ if last_week_file and this_week_file:
 
                     failed_emails = []
 
-                    # --- If send_to_self: only send one preview email to self and return ---
+                    # --- If send_to_self: only send one preview email to self and continue ---
                     if send_to_self:
                         row = full_report.iloc[0]
                         msg = MIMEMultipart()
@@ -292,7 +292,6 @@ if last_week_file and this_week_file:
                         server.send_message(msg)
                         st.success("✅ Preview email sent to yourself.")
                         server.quit()
-                        return
 
                     for _, row in full_report.dropna(subset=["Parent Email"]).iterrows():
                         try:
