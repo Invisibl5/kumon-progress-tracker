@@ -221,12 +221,14 @@ if report_mode == "📅 Weekly Comparison":
 
             # --- Charts Section ---
             st.subheader("📊 Student Engagement Charts")
+            import altair as alt
+
             chart_df = full_report.copy()
             chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
             chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
             chart_df = chart_df.dropna(subset=["Full Name"])
-            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]]
-            import altair as alt
+            chart_df["order"] = chart_df["Full Name"]
+            chart_data = chart_df[["Full Name", "Worksheets", "Study Days", "order"]]
 
             base = alt.Chart(chart_data).transform_fold(
                 ["Worksheets", "Study Days"],
@@ -234,16 +236,16 @@ if report_mode == "📅 Weekly Comparison":
             )
 
             chart = base.mark_bar().encode(
-                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45, labelLimit=1000)),
+                x=alt.X("order:N", sort=chart_data["order"].tolist(), axis=alt.Axis(labelAngle=45, labelLimit=1000, ticks=False)),
                 y=alt.Y("Value:Q"),
                 color=alt.Color("Metric:N"),
                 tooltip=["Full Name:N", "Metric:N", "Value:Q"]
             ).properties(
-                width=alt.Step(30),
+                width=alt.Step(35),
                 height=400
             )
 
-            st.altair_chart(chart, use_container_width=False)
+            st.altair_chart(chart, use_container_width=True)
 
         # Send emails button and logic (always visible if full_report exists)
         if 'full_report' in locals():
@@ -461,12 +463,14 @@ elif report_mode == "🗓️ Monthly Summary":
 
             # --- Charts Section ---
             st.subheader("📊 Student Engagement Charts")
+            import altair as alt
+
             chart_df = full_report.copy()
             chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
             chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
             chart_df = chart_df.dropna(subset=["Full Name"])
-            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]]
-            import altair as alt
+            chart_df["order"] = chart_df["Full Name"]
+            chart_data = chart_df[["Full Name", "Worksheets", "Study Days", "order"]]
 
             base = alt.Chart(chart_data).transform_fold(
                 ["Worksheets", "Study Days"],
@@ -474,16 +478,16 @@ elif report_mode == "🗓️ Monthly Summary":
             )
 
             chart = base.mark_bar().encode(
-                x=alt.X("Full Name:N", sort=None, axis=alt.Axis(labelAngle=45, labelLimit=1000)),
+                x=alt.X("order:N", sort=chart_data["order"].tolist(), axis=alt.Axis(labelAngle=45, labelLimit=1000, ticks=False)),
                 y=alt.Y("Value:Q"),
                 color=alt.Color("Metric:N"),
                 tooltip=["Full Name:N", "Metric:N", "Value:Q"]
             ).properties(
-                width=alt.Step(30),
+                width=alt.Step(35),
                 height=400
             )
 
-            st.altair_chart(chart, use_container_width=False)
+            st.altair_chart(chart, use_container_width=True)
 
             # --- Show students without parent emails ---
             unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
