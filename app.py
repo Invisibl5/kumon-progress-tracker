@@ -158,24 +158,41 @@ if last_week_file and this_week_file:
                     server.starttls()
                     server.login(sender_email, sender_pass)
 
+                    failed_emails = []
+
                     for _, row in full_report.iterrows():
-                        msg = MIMEMultipart()
-                        msg['From'] = sender_email
-                        msg['To'] = row['Parent Email']
-                        msg['Subject'] = subject_line
+                        try:
+                            msg = MIMEMultipart()
+                            msg['From'] = sender_email
+                            msg['To'] = str(row['Parent Email'])
+                            msg['Subject'] = subject_line
 
-                        body = message_template.format(
-                            parent=row['Parent Name'],
-                            student=row['Full Name'],
-                            worksheets=row['Worksheets This Week'],
-                            days=row['Study Days This Week'],
-                            highest_ws=row['Highest WS Completed']
-                        )
+                            body = message_template.format(
+                                parent=str(row['Parent Name']),
+                                student=str(row['Full Name']),
+                                worksheets=str(row['Worksheets This Week']),
+                                days=str(row['Study Days This Week']),
+                                highest_ws=str(row['Highest WS Completed'])
+                            )
 
-                        msg.attach(MIMEText(body, 'plain'))
-                        server.send_message(msg)
+                            msg.attach(MIMEText(body, 'plain'))
+                            server.send_message(msg)
+                        except Exception as e:
+                            failed_emails.append({
+                                'Login ID': row['Login ID'],
+                                'Full Name': row['Full Name'],
+                                'Parent Name': row['Parent Name'],
+                                'Parent Email': row['Parent Email'],
+                                'Error': str(e)
+                            })
 
                     server.quit()
-                    st.success("✅ Emails sent successfully!")
+
+                    if failed_emails:
+                        failed_df = pd.DataFrame(failed_emails)
+                        st.error(f"❌ {len(failed_emails)} emails failed to send.")
+                        st.download_button("Download Failed Emails CSV", data=failed_df.to_csv(index=False), file_name="failed_emails.csv")
+                    else:
+                        st.success("✅ Emails sent successfully!")
                 except Exception as e:
                     st.error(f"❌ Failed to send emails: {e}")
