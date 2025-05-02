@@ -67,8 +67,25 @@ if last_week_file and this_week_file:
     merged["Worksheets This Week"] = merged["WS_This"] - merged["WS_Last"]
     merged["Study Days This Week"] = merged["Days_This"] - merged["Days_Last"]
 
-    weekly_report = merged[["Login ID", "Full Name_This", "WS_This", "WS_Last", "Highest WS Completed_This"]]
-    weekly_report = weekly_report.rename(columns={"Full Name_This": "Full Name"})
+    weekly_report = merged[[
+        "Login ID",
+        "Full Name_This",
+        "WS_This",
+        "WS_Last",
+        "Worksheets This Week",
+        "Days_This",
+        "Days_Last",
+        "Study Days This Week",
+        "Highest WS Completed_This"
+    ]]
+    weekly_report = weekly_report.rename(columns={
+        "Full Name_This": "Full Name",
+        "WS_This": "Worksheets This Week (Total)",
+        "WS_Last": "Worksheets Last Week (Total)",
+        "Days_This": "Study Days This Week (Total)",
+        "Days_Last": "Study Days Last Week (Total)",
+        "Highest WS Completed_This": "Highest Worksheet Completed"
+    })
 
     # Find new students
     new_students = this_trimmed[~this_trimmed["Login ID"].isin(last_trimmed["Login ID"])]
