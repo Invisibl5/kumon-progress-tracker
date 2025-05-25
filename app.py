@@ -229,7 +229,7 @@ if report_mode == "📅 Weekly Comparison":
             chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
             st.bar_chart(chart_data)
 
-        # Send emails button and logic (always visible if full_report exists)
+        # --- Send emails button and logic (always visible if full_report exists) ---
         if 'full_report' in locals():
             # --- Dashboard Summary ---
             st.subheader("📊 Summary")
@@ -419,6 +419,7 @@ elif report_mode == "🗓️ Monthly Summary":
         st.dataframe(summary)
         st.download_button("Download Monthly Summary CSV", data=summary.to_csv(index=False), file_name="monthly_summary.csv")
 
+
         # Email options
         st.subheader("📧 Email Monthly Reports to Parents")
         st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
@@ -478,7 +479,6 @@ elif report_mode == "🗓️ Monthly Summary":
             parent_map["Login ID"] = parent_map["Login ID"].astype(str)
 
             full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
-
 
             # --- Charts Section ---
             st.subheader("📊 Student Engagement Charts")
