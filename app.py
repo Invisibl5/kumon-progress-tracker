@@ -420,6 +420,43 @@ elif report_mode == "🗓️ Monthly Summary":
         st.download_button("Download Monthly Summary CSV", data=summary.to_csv(index=False), file_name="monthly_summary.csv")
 
 
+        # --- Charts Section ---
+        st.subheader("📊 Student Engagement Charts")
+        import altair as alt
+
+        if parent_map_url:
+            if (
+                "docs.google.com/spreadsheets" in parent_map_url
+                and "export?format=csv" not in parent_map_url
+            ):
+                sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
+                if sheet_id_match:
+                    sheet_id = sheet_id_match.group(1)
+                    parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+
+            parent_map = load_parent_map(parent_map_url)
+            parent_map.columns = parent_map.columns.str.strip()
+            if "Login ID" not in parent_map.columns:
+                for col in parent_map.columns:
+                    if col.strip().lower() == "login id":
+                        parent_map.rename(columns={col: "Login ID"}, inplace=True)
+                        break
+            summary["Login ID"] = summary["Login ID"].astype(str)
+            parent_map["Login ID"] = parent_map["Login ID"].astype(str)
+
+            full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+            chart_df = full_report.copy()
+        else:
+            # If no parent map, just use summary
+            full_report = summary
+            chart_df = summary.copy()
+
+        chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
+        chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
+        chart_df = chart_df.dropna(subset=["Full Name"])
+        chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
+        st.bar_chart(chart_data)
+
         # Email options
         st.subheader("📧 Email Monthly Reports to Parents")
         st.markdown("""To use Gmail SMTP, you'll need to [create an App Password](https://support.google.com/accounts/answer/185833). Use that instead of your normal Gmail password.""")
@@ -459,38 +496,7 @@ elif report_mode == "🗓️ Monthly Summary":
             st.success("✅ Settings saved.")
 
         if parent_map_url:
-            if (
-                "docs.google.com/spreadsheets" in parent_map_url
-                and "export?format=csv" not in parent_map_url
-            ):
-                sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
-                if sheet_id_match:
-                    sheet_id = sheet_id_match.group(1)
-                    parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-
-            parent_map = load_parent_map(parent_map_url)
-            parent_map.columns = parent_map.columns.str.strip()
-            if "Login ID" not in parent_map.columns:
-                for col in parent_map.columns:
-                    if col.strip().lower() == "login id":
-                        parent_map.rename(columns={col: "Login ID"}, inplace=True)
-                        break
-            summary["Login ID"] = summary["Login ID"].astype(str)
-            parent_map["Login ID"] = parent_map["Login ID"].astype(str)
-
-            full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
-
-            # --- Charts Section ---
-            st.subheader("📊 Student Engagement Charts")
-            import altair as alt
-
-            chart_df = full_report.copy()
-            chart_df["Worksheets"] = chart_df.get("Worksheets This Week", chart_df.get("Worksheets This Month", 0))
-            chart_df["Study Days"] = chart_df.get("Study Days This Week", chart_df.get("Study Days This Month", 0))
-            chart_df = chart_df.dropna(subset=["Full Name"])
-            chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
-            st.bar_chart(chart_data)
-
+            # The parent_map and full_report code above already ran, so we don't need to reload it here.
             # --- Show students without parent emails ---
             unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
             unmatched_students["Reason"] = "No matching parent email"
