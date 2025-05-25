@@ -419,6 +419,8 @@ elif report_mode == "🗓️ Monthly Summary":
         st.dataframe(summary)
         st.download_button("Download Monthly Summary CSV", data=summary.to_csv(index=False), file_name="monthly_summary.csv")
 
+        # Ensure parent_map_url is defined before charts section
+        parent_map_url = st.session_state.saved_settings.get('sheet_url', '')
 
         # --- Charts Section ---
         st.subheader("📊 Student Engagement Charts")
