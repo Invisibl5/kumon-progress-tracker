@@ -229,7 +229,7 @@ if report_mode == "📅 Weekly Comparison":
             chart_data = chart_df[["Full Name", "Worksheets", "Study Days"]].set_index("Full Name")
             st.bar_chart(chart_data)
 
-        # --- Send emails button and logic (always visible if full_report exists) ---
+        # Send emails button and logic (always visible if full_report exists)
         if 'full_report' in locals():
             # --- Dashboard Summary ---
             st.subheader("📊 Summary")
