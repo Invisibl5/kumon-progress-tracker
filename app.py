@@ -476,7 +476,7 @@ elif report_mode == "🗓️ Monthly Summary":
             "Email Message Template (use {parent}, {student}, {worksheets}, {days}, {highest_ws}, {date_range})",
             value=st.session_state.saved_settings['message'] or (
                 "Dear {parent},\n\n"
-                "Here is the monthly study summary for {student}:\n"
+                "Here is the monthly study summary for {student} from {date_range}:\n"
                 "- Worksheets completed: {worksheets}\n"
                 "- Study days: {days}\n"
                 "- Highest worksheet completed: {highest_ws}\n\n"
