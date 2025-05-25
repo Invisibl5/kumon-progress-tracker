@@ -62,6 +62,8 @@ if report_mode == "📅 Weekly Comparison":
         date_this = extract_date_from_filename(this_week_file.name)
         # --- Formatted Date Range String ---
         date_range_str = f"{date_last.strftime('%B %d')} to {date_this.strftime('%B %d')}" if date_last and date_this else ""
+        if date_range_str:
+            st.markdown(f"**Date Range:** {date_range_str}  ")
 
         # Infer subject type from filename
         subject_type = ""
@@ -400,6 +402,7 @@ elif report_mode == "🗓️ Monthly Summary":
 
     if monthly_file:
         date_range_str = "this month"
+        st.markdown(f"**Date Range:** {date_range_str}")
         # --- Subject detection logic like weekly mode ---
         subject_type = ""
         if "math" in monthly_file.name.lower():
