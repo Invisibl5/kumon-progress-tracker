@@ -250,23 +250,19 @@ if report_mode == "📅 Weekly Comparison":
             st.write("✅ Select which students should receive the email below:")
             preview_df = full_report.copy()
             filter_valid_only = st.checkbox("✅ Only show students with valid parent emails", value=True)
-            # Only filter valid emails if "Parent Email" exists and toggle is on
-            if "Parent Email" in preview_df.columns and filter_valid_only:
-                email_mask = preview_df["Parent Email"].astype(str).apply(lambda x: isinstance(x, str) and bool(re.match(r"[^@\s]+@[^@\s]+\.[^@\s]+", x)))
-                preview_df = preview_df[email_mask]
-            elif "Parent Email" not in preview_df.columns:
-                st.warning("⚠️ 'Parent Email' column not found. Skipping filtering of valid emails.")
+            # Mark valid emails, if column exists
             if "Parent Email" in preview_df.columns:
-            if "Parent Email" in preview_df.columns:
+                if filter_valid_only:
+                    email_mask = preview_df["Parent Email"].astype(str).apply(
+                        lambda x: isinstance(x, str) and bool(re.match(r"[^@\s]+@[^@\s]+\.[^@\s]+", x))
+                    )
+                    preview_df = preview_df[email_mask]
                 preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(
                     lambda x: "✅" if is_valid_email(x) else "❌"
                 )
             else:
+                st.warning("⚠️ 'Parent Email' column not found in preview data. Skipping email preview filtering.")
                 preview_df["Valid Email"] = "❌"
-                st.warning("⚠️ 'Parent Email' column missing — unable to mark valid emails.")
-            else:
-                preview_df["Valid Email"] = "❌"
-                st.warning("⚠️ 'Parent Email' column missing — unable to mark valid emails.")
             preview_df["Email Body"] = preview_df.apply(
                 lambda row: message_template.format(
                     parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
