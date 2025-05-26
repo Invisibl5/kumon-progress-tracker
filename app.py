@@ -354,8 +354,8 @@ if report_mode == "📅 Weekly Comparison":
                             else:
                                 st.write("📨 Preview email (to self):")
                                 st.code(body)
-                            # Remove first row from preview_df so it’s not sent again
-                            preview_df = preview_df.iloc[1:]
+                            # Remove the specific student used for preview from preview_df so it’s not sent again
+                            preview_df = preview_df[preview_df["Full Name"] != row["Full Name"]]
 
                         email_rows = preview_df.dropna(subset=["Parent Email"])
                         for i, (_, row) in enumerate(email_rows.iterrows()):
@@ -651,8 +651,8 @@ elif report_mode == "🗓️ Monthly Summary":
                             else:
                                 st.write("📨 Preview email (to self):")
                                 st.code(body)
-                            # Remove first row from preview_df so it’s not sent again
-                            preview_df = preview_df.iloc[1:]
+                            # Remove the specific student used for preview from preview_df so it’s not sent again
+                            preview_df = preview_df[preview_df["Full Name"] != row["Full Name"]]
 
                         email_rows = preview_df.dropna(subset=["Parent Email"])
                         for i, (_, row) in enumerate(email_rows.iterrows()):
