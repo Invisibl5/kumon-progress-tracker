@@ -256,7 +256,13 @@ if report_mode == "📅 Weekly Comparison":
                 preview_df = preview_df[email_mask]
             elif "Parent Email" not in preview_df.columns:
                 st.warning("⚠️ 'Parent Email' column not found. Skipping filtering of valid emails.")
-            preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(lambda x: "✅" if is_valid_email(x) else "❌")
+            if "Parent Email" in preview_df.columns:
+                preview_df["Valid Email"] = preview_df["Parent Email"].astype(str).apply(
+                    lambda x: "✅" if is_valid_email(x) else "❌"
+                )
+            else:
+                preview_df["Valid Email"] = "❌"
+                st.warning("⚠️ 'Parent Email' column missing — unable to mark valid emails.")
             preview_df["Email Body"] = preview_df.apply(
                 lambda row: message_template.format(
                     parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
