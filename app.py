@@ -331,7 +331,7 @@ if report_mode == "📅 Weekly Comparison":
 
                         failed_emails = []
 
-                        # --- If send_to_self: only send one preview email to self and continue ---
+                        # --- If send_to_self or test_mode, handle preview email logic ---
                         if send_to_self:
                             row = preview_df.iloc[0]
                             msg = MIMEMultipart()
@@ -347,10 +347,13 @@ if report_mode == "📅 Weekly Comparison":
                                 date_range=date_range_str
                             )
                             msg.attach(MIMEText(body, 'plain'))
-                            server.send_message(msg)
-                            st.success("✅ Preview email sent to yourself.")
-                            server.quit()
-                            st.stop()
+
+                            if not test_mode:
+                                server.send_message(msg)
+                                st.success("✅ Preview email sent to yourself.")
+                            else:
+                                st.write("📨 Preview email (to self):")
+                                st.code(body)
 
                         for i, (_, row) in enumerate(preview_df.dropna(subset=["Parent Email"]).iterrows()):
                             try:
@@ -638,10 +641,13 @@ elif report_mode == "🗓️ Monthly Summary":
                                 date_range=date_range_str
                             )
                             msg.attach(MIMEText(body, 'plain'))
-                            server.send_message(msg)
-                            st.success("✅ Preview email sent to yourself.")
-                            server.quit()
-                            st.stop()
+
+                            if not test_mode:
+                                server.send_message(msg)
+                                st.success("✅ Preview email sent to yourself.")
+                            else:
+                                st.write("📨 Preview email (to self):")
+                                st.code(body)
 
                         for i, (_, row) in enumerate(preview_df.dropna(subset=["Parent Email"]).iterrows()):
                             try:
