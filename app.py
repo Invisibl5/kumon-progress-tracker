@@ -503,8 +503,12 @@ elif report_mode == "🗓️ Monthly Summary":
         if parent_map_url:
             # The parent_map and full_report code above already ran, so we don't need to reload it here.
             # --- Show students without parent emails ---
-            unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
-            unmatched_students["Reason"] = "No matching parent email"
+            if "Parent Email" in full_report.columns:
+                unmatched_students = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
+                unmatched_students["Reason"] = "No matching parent email"
+            else:
+                st.warning("⚠️ 'Parent Email' column not found in parent mapping. Please ensure your sheet includes it.")
+                unmatched_students = pd.DataFrame(columns=["Login ID", "Full Name", "Reason"])
 
             if not unmatched_students.empty:
                 st.subheader("⚠️ Students Without Parent Emails")
