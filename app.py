@@ -265,7 +265,7 @@ if report_mode == "📅 Weekly Comparison":
                 preview_df["Valid Email"] = "❌"
             preview_df["Email Body"] = preview_df.apply(
                 lambda row: message_template.format(
-                    parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                    parent=row.get('Parent Name') if pd.notna(row.get('Parent Name')) else "Parent",
                     student=row['Full Name'],
                     worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
                     days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
@@ -578,7 +578,7 @@ elif report_mode == "🗓️ Monthly Summary":
                 st.warning("⚠️ 'Parent Email' column missing — unable to mark valid emails.")
             preview_df["Email Body"] = preview_df.apply(
                 lambda row: message_template.format(
-                    parent=row['Parent Name'] if pd.notna(row['Parent Name']) else "Parent",
+                    parent=row.get('Parent Name') if pd.notna(row.get('Parent Name')) else "Parent",
                     student=row['Full Name'],
                     worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
                     days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
