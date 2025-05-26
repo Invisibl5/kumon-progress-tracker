@@ -281,7 +281,8 @@ if report_mode == "📅 Weekly Comparison":
             )
 
             preview_df = preview_df[preview_df["Full Name"].isin(selected_emails)]
-            st.dataframe(preview_df[["Parent Name", "Parent Email", "Valid Email", "Email Body"]])
+            cols_to_show = [col for col in ["Parent Name", "Parent Email", "Valid Email", "Email Body"] if col in preview_df.columns]
+            st.dataframe(preview_df[cols_to_show])
 
             # --- Send to Self Toggle ---
             send_to_self = st.checkbox("Send preview email to myself only", value=False)
@@ -592,7 +593,8 @@ elif report_mode == "🗓️ Monthly Summary":
                 key="email_preview_selector"
             )
             preview_df = preview_df[preview_df["Full Name"].isin(selected_emails)]
-            st.dataframe(preview_df[["Parent Name", "Parent Email", "Valid Email", "Email Body"]])
+            cols_to_show = [col for col in ["Parent Name", "Parent Email", "Valid Email", "Email Body"] if col in preview_df.columns]
+            st.dataframe(preview_df[cols_to_show])
 
             send_to_self = st.checkbox("Send preview email to myself only", value=False)
             test_mode = st.checkbox("Test Mode (Print emails to console only, do not send)", value=True)
