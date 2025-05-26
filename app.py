@@ -355,7 +355,10 @@ if report_mode == "📅 Weekly Comparison":
                                 st.write("📨 Preview email (to self):")
                                 st.code(body)
 
-                        for i, (_, row) in enumerate(preview_df.dropna(subset=["Parent Email"]).iterrows()):
+                        email_rows = preview_df.dropna(subset=["Parent Email"])
+                        if send_to_self:
+                            email_rows = email_rows.iloc[1:]
+                        for i, (_, row) in enumerate(email_rows.iterrows()):
                             try:
                                 msg = MIMEMultipart()
                                 msg['From'] = sender_email
@@ -649,7 +652,10 @@ elif report_mode == "🗓️ Monthly Summary":
                                 st.write("📨 Preview email (to self):")
                                 st.code(body)
 
-                        for i, (_, row) in enumerate(preview_df.dropna(subset=["Parent Email"]).iterrows()):
+                        email_rows = preview_df.dropna(subset=["Parent Email"])
+                        if send_to_self:
+                            email_rows = email_rows.iloc[1:]
+                        for i, (_, row) in enumerate(email_rows.iterrows()):
                             try:
                                 msg = MIMEMultipart()
                                 msg['From'] = sender_email
