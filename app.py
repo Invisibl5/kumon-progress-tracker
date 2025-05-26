@@ -361,7 +361,7 @@ if report_mode == "📅 Weekly Comparison":
                         st.dataframe(email_log_df)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
-                else:
+                elif not send_to_self:
                     try:
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
@@ -666,7 +666,7 @@ elif report_mode == "🗓️ Monthly Summary":
                         st.dataframe(email_log_df)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
-                else:
+                elif not send_to_self:
                     try:
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
