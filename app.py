@@ -429,7 +429,11 @@ elif report_mode == "🗓️ Monthly Summary":
     monthly_file = st.file_uploader("Upload Monthly Report CSV", type="csv", key="monthly")
 
     if monthly_file:
-        date_range_str = "this month"
+        date_month = extract_date_from_filename(monthly_file.name)
+        if date_month:
+            date_range_str = date_month.strftime('%B %d, %Y')
+        else:
+            date_range_str = "this month"
         st.markdown(f"**Date Range:** {date_range_str}")
         # --- Subject detection logic like weekly mode ---
         subject_type = ""
