@@ -305,6 +305,8 @@ if report_mode == "📅 Weekly Comparison":
                             date_range=date_range_str
                         )
                         print(body)
+                        st.write(f"📨 Email to: {row['Parent Email']}")
+                        st.code(body)
                         email_log.append({
                             'Timestamp': timestamp,
                             'Login ID': row['Login ID'],
@@ -314,6 +316,11 @@ if report_mode == "📅 Weekly Comparison":
                         })
                         progress_value = min((i + 1) / total, 1.0) if total else 1.0
                         progress_bar.progress(progress_value)
+                    # Show a log table immediately after test mode loop
+                    if email_log:
+                        email_log_df = pd.DataFrame(email_log)
+                        st.subheader("📜 Test Mode Email Log")
+                        st.dataframe(email_log_df)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
                 else:
@@ -590,6 +597,8 @@ elif report_mode == "🗓️ Monthly Summary":
                             date_range=date_range_str
                         )
                         print(body)
+                        st.write(f"📨 Email to: {row['Parent Email']}")
+                        st.code(body)
                         email_log.append({
                             'Timestamp': timestamp,
                             'Login ID': row['Login ID'],
@@ -599,6 +608,11 @@ elif report_mode == "🗓️ Monthly Summary":
                         })
                         progress_value = min((i + 1) / total, 1.0) if total else 1.0
                         progress_bar.progress(progress_value)
+                    # Show a log table immediately after test mode loop
+                    if email_log:
+                        email_log_df = pd.DataFrame(email_log)
+                        st.subheader("📜 Test Mode Email Log")
+                        st.dataframe(email_log_df)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
                 else:
