@@ -520,7 +520,10 @@ elif report_mode == "🗓️ Monthly Summary":
                 )
 
             st.subheader("📊 Summary")
-            unmatched = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]]
+            if "Parent Email" in full_report.columns:
+                unmatched = full_report[full_report["Parent Email"].isnull()][["Login ID", "Full Name"]]
+            else:
+                unmatched = pd.DataFrame(columns=["Login ID", "Full Name"])
             matched_count = len(full_report.dropna(subset=["Parent Email"]))
             missing_count = len(unmatched)
             st.markdown(f"""
