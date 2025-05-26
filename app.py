@@ -294,59 +294,59 @@ if report_mode == "📅 Weekly Comparison":
                 email_log = []
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                # Handle preview to self (only first email)
-                if send_to_self and not test_mode:
+                # Always handle preview to self first (first row only)
+                if send_to_self:
                     row = preview_df.iloc[0]
-                    msg = MIMEMultipart()
-                    msg['From'] = sender_email
-                    msg['To'] = sender_email
-                    msg['Subject'] = subject_line
-                    body = message_template.format(
-                        parent=row.get('Parent Name', 'Parent'),
-                        student=row['Full Name'],
-                        worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
-                        days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
-                        highest_ws=row['Highest WS Completed'],
-                        date_range=date_range_str
-                    )
-                    msg.attach(MIMEText(body, 'plain'))
-                    try:
-                        server = smtplib.SMTP("smtp.gmail.com", 587)
-                        server.starttls()
-                        server.login(sender_email, sender_pass)
-                        server.send_message(msg)
-                        server.quit()
-                        st.success("✅ Preview email sent to yourself.")
+                    if test_mode:
+                        st.write("📨 Preview email (to self):")
+                        st.code(message_template.format(
+                            parent=row.get('Parent Name', 'Parent'),
+                            student=row['Full Name'],
+                            worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
+                            days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
+                            highest_ws=row['Highest WS Completed'],
+                            date_range=date_range_str
+                        ))
                         email_log.append({
                             'Timestamp': timestamp,
                             'Login ID': row['Login ID'],
                             'Student': row['Full Name'],
                             'Parent Email': sender_email,
-                            'Status': 'Preview to Self'
+                            'Status': 'Preview to Self (Test Mode)'
                         })
-                    except Exception as e:
-                        st.error(f"❌ Failed to send preview email to yourself: {e}")
-                    # Do not send any parent emails if send_to_self is set
-                elif send_to_self and test_mode:
-                    row = preview_df.iloc[0]
-                    st.write("📨 Preview email (to self):")
-                    st.code(message_template.format(
-                        parent=row.get('Parent Name', 'Parent'),
-                        student=row['Full Name'],
-                        worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
-                        days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
-                        highest_ws=row['Highest WS Completed'],
-                        date_range=date_range_str
-                    ))
-                    email_log.append({
-                        'Timestamp': timestamp,
-                        'Login ID': row['Login ID'],
-                        'Student': row['Full Name'],
-                        'Parent Email': sender_email,
-                        'Status': 'Preview to Self (Test Mode)'
-                    })
-                    # Do not print all parent emails if send_to_self and test_mode
-                elif test_mode:
+                    else:
+                        msg = MIMEMultipart()
+                        msg['From'] = sender_email
+                        msg['To'] = sender_email
+                        msg['Subject'] = subject_line
+                        body = message_template.format(
+                            parent=row.get('Parent Name', 'Parent'),
+                            student=row['Full Name'],
+                            worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
+                            days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
+                            highest_ws=row['Highest WS Completed'],
+                            date_range=date_range_str
+                        )
+                        msg.attach(MIMEText(body, 'plain'))
+                        try:
+                            server = smtplib.SMTP("smtp.gmail.com", 587)
+                            server.starttls()
+                            server.login(sender_email, sender_pass)
+                            server.send_message(msg)
+                            server.quit()
+                            st.success("✅ Preview email sent to yourself.")
+                            email_log.append({
+                                'Timestamp': timestamp,
+                                'Login ID': row['Login ID'],
+                                'Student': row['Full Name'],
+                                'Parent Email': sender_email,
+                                'Status': 'Preview to Self'
+                            })
+                        except Exception as e:
+                            st.error(f"❌ Failed to send preview email to yourself: {e}")
+
+                # Now branch: test_mode or real send (excluding first row if send_to_self)
+                if test_mode:
                     for i, (_, row) in enumerate(preview_df.iterrows()):
                         print(f"TO: {row['Parent Email']}")
                         body = message_template.format(
@@ -375,7 +375,7 @@ if report_mode == "📅 Weekly Comparison":
                         st.dataframe(email_log_df)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
-                elif not test_mode:
+                else:
                     try:
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
@@ -613,59 +613,59 @@ elif report_mode == "🗓️ Monthly Summary":
                 email_log = []
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                # Handle preview to self (only first email)
-                if send_to_self and not test_mode:
+                # Always handle preview to self first (first row only)
+                if send_to_self:
                     row = preview_df.iloc[0]
-                    msg = MIMEMultipart()
-                    msg['From'] = sender_email
-                    msg['To'] = sender_email
-                    msg['Subject'] = subject_line
-                    body = message_template.format(
-                        parent=row.get('Parent Name', 'Parent'),
-                        student=row['Full Name'],
-                        worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
-                        days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
-                        highest_ws=row['Highest WS Completed'],
-                        date_range=date_range_str
-                    )
-                    msg.attach(MIMEText(body, 'plain'))
-                    try:
-                        server = smtplib.SMTP("smtp.gmail.com", 587)
-                        server.starttls()
-                        server.login(sender_email, sender_pass)
-                        server.send_message(msg)
-                        server.quit()
-                        st.success("✅ Preview email sent to yourself.")
+                    if test_mode:
+                        st.write("📨 Preview email (to self):")
+                        st.code(message_template.format(
+                            parent=row.get('Parent Name', 'Parent'),
+                            student=row['Full Name'],
+                            worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
+                            days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
+                            highest_ws=row['Highest WS Completed'],
+                            date_range=date_range_str
+                        ))
                         email_log.append({
                             'Timestamp': timestamp,
                             'Login ID': row['Login ID'],
                             'Student': row['Full Name'],
                             'Parent Email': sender_email,
-                            'Status': 'Preview to Self'
+                            'Status': 'Preview to Self (Test Mode)'
                         })
-                    except Exception as e:
-                        st.error(f"❌ Failed to send preview email to yourself: {e}")
-                    # Do not send any parent emails if send_to_self is set
-                elif send_to_self and test_mode:
-                    row = preview_df.iloc[0]
-                    st.write("📨 Preview email (to self):")
-                    st.code(message_template.format(
-                        parent=row.get('Parent Name', 'Parent'),
-                        student=row['Full Name'],
-                        worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
-                        days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
-                        highest_ws=row['Highest WS Completed'],
-                        date_range=date_range_str
-                    ))
-                    email_log.append({
-                        'Timestamp': timestamp,
-                        'Login ID': row['Login ID'],
-                        'Student': row['Full Name'],
-                        'Parent Email': sender_email,
-                        'Status': 'Preview to Self (Test Mode)'
-                    })
-                    # Do not print all parent emails if send_to_self and test_mode
-                elif test_mode:
+                    else:
+                        msg = MIMEMultipart()
+                        msg['From'] = sender_email
+                        msg['To'] = sender_email
+                        msg['Subject'] = subject_line
+                        body = message_template.format(
+                            parent=row.get('Parent Name', 'Parent'),
+                            student=row['Full Name'],
+                            worksheets=row.get("Worksheets This Week", row.get("Worksheets This Month", 0)),
+                            days=row.get("Study Days This Week", row.get("Study Days This Month", 0)),
+                            highest_ws=row['Highest WS Completed'],
+                            date_range=date_range_str
+                        )
+                        msg.attach(MIMEText(body, 'plain'))
+                        try:
+                            server = smtplib.SMTP("smtp.gmail.com", 587)
+                            server.starttls()
+                            server.login(sender_email, sender_pass)
+                            server.send_message(msg)
+                            server.quit()
+                            st.success("✅ Preview email sent to yourself.")
+                            email_log.append({
+                                'Timestamp': timestamp,
+                                'Login ID': row['Login ID'],
+                                'Student': row['Full Name'],
+                                'Parent Email': sender_email,
+                                'Status': 'Preview to Self'
+                            })
+                        except Exception as e:
+                            st.error(f"❌ Failed to send preview email to yourself: {e}")
+
+                # Now branch: test_mode or real send (excluding first row if send_to_self)
+                if test_mode:
                     for i, (_, row) in enumerate(preview_df.iterrows()):
                         print(f"TO: {row['Parent Email']}")
                         body = message_template.format(
@@ -694,7 +694,7 @@ elif report_mode == "🗓️ Monthly Summary":
                         st.dataframe(email_log_df)
                     st.success("✅ Test mode: Emails printed to console.")
                     st.balloons()
-                elif not test_mode:
+                else:
                     try:
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
