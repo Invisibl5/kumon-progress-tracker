@@ -327,11 +327,14 @@ if report_mode == "📅 Weekly Comparison":
                     date_range=date_range_str
                 ), axis=1)
 
+            # Dynamically set the height so all names are visible without scrolling
+            multiselect_height = max(100, len(preview_df) * 35)
             selected_emails = st.multiselect(
                 "Check students to include in the email send list:",
                 options=preview_df["Full Name"].tolist(),
                 default=preview_df["Full Name"].tolist(),
-                key="email_preview_selector"
+                key="email_preview_selector",
+                max_height=multiselect_height
             )
 
             preview_df = preview_df[preview_df["Full Name"].isin(selected_emails)]
@@ -663,11 +666,14 @@ elif report_mode == "🗓️ Monthly Summary":
                     highest_ws=row['Highest WS Completed'],
                     date_range=date_range_str
                 ), axis=1)
+            # Dynamically set the height so all names are visible without scrolling
+            multiselect_height = max(100, len(preview_df) * 35)
             selected_emails = st.multiselect(
                 "Check students to include in the email send list:",
                 options=preview_df["Full Name"].tolist(),
                 default=preview_df["Full Name"].tolist(),
-                key="email_preview_selector"
+                key="email_preview_selector",
+                max_height=multiselect_height
             )
             preview_df = preview_df[preview_df["Full Name"].isin(selected_emails)]
             cols_to_show = [col for col in ["Parent Name", "Parent Email", "Valid Email", "Email Body"] if col in preview_df.columns]
