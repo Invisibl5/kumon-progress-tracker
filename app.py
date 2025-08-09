@@ -43,6 +43,18 @@ def load_parent_map(url):
     except Exception:
         parent_map = pd.read_csv(url, on_bad_lines='skip')
         st.warning("⚠️ Some rows in the parent contact sheet were skipped due to formatting issues.")
+    # Normalize column names: strip and lowercase for easier comparison
+    parent_map.columns = [col.strip() for col in parent_map.columns]
+    # Try to ensure "Parent Email" column exists, else fallback to first column containing "email"
+    normalized_cols = [col.strip().lower() for col in parent_map.columns]
+    if "parent email" not in normalized_cols:
+        # Fallback: find first column containing "email"
+        for idx, col in enumerate(normalized_cols):
+            if "email" in col:
+                # Rename that column to "Parent Email"
+                orig_col = parent_map.columns[idx]
+                parent_map.rename(columns={orig_col: "Parent Email"}, inplace=True)
+                break
     return parent_map
 
 # --- Report Modes ---
@@ -189,6 +201,14 @@ if report_mode == "📅 Weekly Comparison":
             parent_map = load_parent_map(parent_map_url)
             st.write("Loaded Parent Map Columns:", parent_map.columns.tolist())
             parent_map.columns = parent_map.columns.str.strip()
+            # Ensure "Parent Email" column exists, else fallback to any column containing "email"
+            normalized_cols = [col.strip().lower() for col in parent_map.columns]
+            if "parent email" not in normalized_cols:
+                for idx, col in enumerate(normalized_cols):
+                    if "email" in col:
+                        orig_col = parent_map.columns[idx]
+                        parent_map.rename(columns={orig_col: "Parent Email"}, inplace=True)
+                        break
             if "Login ID" not in parent_map.columns:
                 for col in parent_map.columns:
                     if col.strip().lower() == "login id":
@@ -198,6 +218,14 @@ if report_mode == "📅 Weekly Comparison":
             parent_map["Login ID"] = parent_map["Login ID"].astype(str)
             new_students["Login ID"] = new_students["Login ID"].astype(str)
             full_report = pd.merge(weekly_report, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+            # After merging, also ensure "Parent Email" column exists in full_report (fallback)
+            if "Parent Email" not in full_report.columns:
+                normalized_cols = [col.strip().lower() for col in full_report.columns]
+                for idx, col in enumerate(normalized_cols):
+                    if "email" in col:
+                        orig_col = full_report.columns[idx]
+                        full_report.rename(columns={orig_col: "Parent Email"}, inplace=True)
+                        break
             full_report["Full Name"] = weekly_report["Full Name"]
             if "Login ID" not in full_report.columns:
                 full_report = pd.merge(full_report, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
@@ -206,6 +234,14 @@ if report_mode == "📅 Weekly Comparison":
             unmatched_parents["Reason"] = "No matching parent email"
             new_students_merged = pd.merge(new_students, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
             new_students_merged["Full Name"] = new_students_merged["Full Name"].combine_first(new_students["Full Name"])
+            # Ensure "Parent Email" column exists in new_students_merged (fallback)
+            if "Parent Email" not in new_students_merged.columns:
+                normalized_cols = [col.strip().lower() for col in new_students_merged.columns]
+                for idx, col in enumerate(normalized_cols):
+                    if "email" in col:
+                        orig_col = new_students_merged.columns[idx]
+                        new_students_merged.rename(columns={orig_col: "Parent Email"}, inplace=True)
+                        break
             if "Login ID" not in new_students_merged.columns:
                 new_students_merged = pd.merge(new_students_merged, this_trimmed[["Login ID", "Full Name"]], on="Full Name", how="left")
             unmatched_new = new_students_merged[new_students_merged["Parent Email"].isnull()][["Login ID", "Full Name"]].copy()
@@ -473,6 +509,14 @@ elif report_mode == "🗓️ Monthly Summary":
 
             parent_map = load_parent_map(parent_map_url)
             parent_map.columns = parent_map.columns.str.strip()
+            # Ensure "Parent Email" column exists, else fallback to any column containing "email"
+            normalized_cols = [col.strip().lower() for col in parent_map.columns]
+            if "parent email" not in normalized_cols:
+                for idx, col in enumerate(normalized_cols):
+                    if "email" in col:
+                        orig_col = parent_map.columns[idx]
+                        parent_map.rename(columns={orig_col: "Parent Email"}, inplace=True)
+                        break
             if "Login ID" not in parent_map.columns:
                 for col in parent_map.columns:
                     if col.strip().lower() == "login id":
@@ -482,6 +526,14 @@ elif report_mode == "🗓️ Monthly Summary":
             parent_map["Login ID"] = parent_map["Login ID"].astype(str)
 
             full_report = pd.merge(summary, parent_map, on="Login ID", how="left", suffixes=("", "_parent"))
+            # After merging, also ensure "Parent Email" column exists in full_report (fallback)
+            if "Parent Email" not in full_report.columns:
+                normalized_cols = [col.strip().lower() for col in full_report.columns]
+                for idx, col in enumerate(normalized_cols):
+                    if "email" in col:
+                        orig_col = full_report.columns[idx]
+                        full_report.rename(columns={orig_col: "Parent Email"}, inplace=True)
+                        break
             chart_df = full_report.copy()
         else:
             # If no parent map, just use summary
