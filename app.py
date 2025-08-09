@@ -485,7 +485,8 @@ elif report_mode == "🗓️ Monthly Summary":
     if monthly_file:
         date_month = extract_date_from_filename(monthly_file.name)
         if date_month:
-            date_range_str = date_month.strftime('%B %d, %Y')
+            first_day = date_month.replace(day=1)
+            date_range_str = f"{first_day.strftime('%B %d, %Y')} to {date_month.strftime('%B %d, %Y')}"
         else:
             date_range_str = "this month"
         st.markdown(f"**Date Range:** {date_range_str}")
