@@ -25,7 +25,7 @@ today = datetime.now(eastern)
 st.title("📊 Weekly Study Activity Tracker")
 st.caption(f"Report generated at {today.strftime('%I:%M %p on %B %d, %Y')} (Eastern Time)")
 
-report_mode = st.radio("Choose Report Mode", ["📅 Weekly Comparison", "🗓️ Monthly Summary"])
+report_mode = st.radio("Choose Report Mode", ["📅 Weekl Comparison", "🗓️ Monthly Summary"])
 
 def extract_date_from_filename(filename):
     match = re.search(r'(\d{8})', filename)
