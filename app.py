@@ -205,11 +205,13 @@ if report_mode == "📅 Weekly Comparison":
 
         if parent_map_url:
             # Always load the map, and allow refresh to be a manual trigger too
+            # Strip query parameters and hash fragments before extracting sheet ID
+            url_base = parent_map_url.split("?")[0].split("#")[0]
             if (
-                "docs.google.com/spreadsheets" in parent_map_url
+                "docs.google.com/spreadsheets" in url_base
                 and "export?format=csv" not in parent_map_url
             ):
-                sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
+                sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", url_base)
                 if sheet_id_match:
                     sheet_id = sheet_id_match.group(1)
                     parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
@@ -514,11 +516,13 @@ elif report_mode == "🗓️ Monthly Summary":
         import altair as alt
 
         if parent_map_url:
+            # Strip query parameters and hash fragments before extracting sheet ID
+            url_base = parent_map_url.split("?")[0].split("#")[0]
             if (
-                "docs.google.com/spreadsheets" in parent_map_url
+                "docs.google.com/spreadsheets" in url_base
                 and "export?format=csv" not in parent_map_url
             ):
-                sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", parent_map_url)
+                sheet_id_match = re.search(r"/d/([a-zA-Z0-9-_]+)", url_base)
                 if sheet_id_match:
                     sheet_id = sheet_id_match.group(1)
                     parent_map_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
