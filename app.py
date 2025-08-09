@@ -43,18 +43,34 @@ def load_parent_map(url):
     except Exception:
         parent_map = pd.read_csv(url, on_bad_lines='skip')
         st.warning("⚠️ Some rows in the parent contact sheet were skipped due to formatting issues.")
-    # Normalize column names: strip and lowercase for easier comparison
+    # Normalize column names: strip whitespace for easier comparison
     parent_map.columns = [col.strip() for col in parent_map.columns]
-    # Try to ensure "Parent Email" column exists, else fallback to first column containing "email"
     normalized_cols = [col.strip().lower() for col in parent_map.columns]
     if "parent email" not in normalized_cols:
-        # Fallback: find first column containing "email"
+        # Fallback 1: find first column containing "email" (case-insensitive)
+        found = False
         for idx, col in enumerate(normalized_cols):
             if "email" in col:
-                # Rename that column to "Parent Email"
                 orig_col = parent_map.columns[idx]
                 parent_map.rename(columns={orig_col: "Parent Email"}, inplace=True)
+                found = True
                 break
+        # Fallback 2: scan for column with majority of non-null values containing "@"
+        if not found:
+            # Exclude "Full Name" and "Login ID" columns
+            exclude = set([c.strip().lower() for c in ["Full Name", "Login ID"]])
+            for col in parent_map.columns:
+                col_lc = col.strip().lower()
+                if col_lc in exclude:
+                    continue
+                # Count non-null values and those with '@'
+                series = parent_map[col].dropna().astype(str)
+                if len(series) == 0:
+                    continue
+                at_count = series.str.contains("@").sum()
+                if at_count > (len(series) / 2):  # majority
+                    parent_map.rename(columns={col: "Parent Email"}, inplace=True)
+                    break
     return parent_map
 
 # --- Report Modes ---
